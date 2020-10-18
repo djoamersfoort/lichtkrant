@@ -1,5 +1,5 @@
 # lichtkrant
-Een chinees hub75 ledpaneel die handige informatie geeft voor de DJO.
+A Chinese Hub75 LED panel reincarnated as a fancy marquee used at DJO.
 
 ## Installation
 ```bash
