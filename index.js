@@ -2,6 +2,7 @@
 
 const {ArgumentParser} = require("argparse");
 const Runner = require("./runner.js");
+const SpaceStates = require("./mqtt.js");
 
 const fs = require("fs");
 const path = require("path");
@@ -15,29 +16,45 @@ const parser = new ArgumentParser({
   description: "A driver for the DJO Lichtkrant project."
 });
 
-parser.add_argument("-i", "--interval", {type: "int", default: 5000, help: "the interval at which states update"});
+parser.add_argument("-i", "--interval", {type: "int", default: 2500, help: "the interval at which states update"});
 parser.add_argument("-s", "--state-dir", {type: "str", default: path.join(__dirname, "states"), help: "path to the states directory"});
-parser.add_argument("-e", "--allow-empty", {action: "store_true", help: "allow an empty screen (no active state)"});
+parser.add_argument("-m", "--module", {type: "str", default: null, help: "load a specific module by name"});
+parser.add_argument("-r", "--no-recursive", {action: "store_true", help: "disable recursive directory searching"});
 
 args = parser.parse_args();
 
 // loading modules/states
 
-fs.readdirSync(args.state_dir).forEach(state => {
-  const absPath = path.join(args.state_dir, state, "index.js");
-  if(!fs.existsSync(absPath)) return;
+function readDir(dir) {
+  fs.readdirSync(dir).forEach(state => {
+    const absPath = path.join(dir, state);
 
-  const stateModule = require(absPath);
-  if(states.map(s => s.name).indexOf(stateModule.name) !== -1) throw new Error(`Duplicate state name: '${stateModule.name}'!`);
+    if(fs.statSync(absPath).isDirectory() && !args.no_recursive) readDir(path.join(dir, state));
+    if(!state.endsWith(".state.js")) return;
 
-  states.push(stateModule);
-});
+    const stateModule = require(absPath);
+
+    if(states.map(s => s.name).indexOf(stateModule.name) !== -1) throw new Error(`Duplicate state name: '${stateModule.name}'!`);
+    if(args.module !== null && stateModule.name !== args.module) return;
+
+    states.push(stateModule);
+  });
+}
+
+readDir(args.state_dir);
+
+if(states.length === 0) {
+  throw new Error(args.module !== null ? "No module found by that name." : "No states loaded.");
+}
 
 // update states
 
-function update() {
-  const sorted = states.filter(s => typeof s === "function" ? s() : s).sort((a, b) => b.index - a.index);
-  const newState = sorted[0] || null;
+async function update() {
+  const sorted = states.filter(s => typeof s.check === "function" ? s.check(SpaceStates) : s.check).sort((a, b) => b.index - a.index);
+
+  let newState = sorted[0] || null;
+
+  if(args.module !== null) newState = states[0];
 
   if(currentState === null || newState !== currentState) {
     if(currentRunner !== null) {
@@ -48,9 +65,6 @@ function update() {
       currentRunner = new Runner(newState);
       currentState = newState;
       currentRunner.run();
-    } else if(args.allow_empty) {
-      currentRunner = null;
-      currentState = null;
     } else {
       throw new Error("There is no active state.");
     }

@@ -1,6 +1,6 @@
 module.exports = {
   name: "clock",
-  index: 1,
+  index: -1,
   check: true,
   command: `
   while true; do

@@ -4,6 +4,7 @@
   "description": "Een chinees hub75 ledpaneel die handige informatie geeft voor de DJO.",
   "main": "index.js",
   "scripts": {
+    "start": "node index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -17,6 +18,7 @@
   },
   "homepage": "https://github.com/djoamersfoort/lichtkrant#readme",
   "dependencies": {
-    "argparse": "^2.0.1"
+    "argparse": "^2.0.1",
+    "mqtt": "^4.2.1"
   }
 }
