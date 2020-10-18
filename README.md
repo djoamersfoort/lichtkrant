@@ -9,7 +9,6 @@ npm install
 ```
 
 ## Usage
-The help page of the command is as follows:
 ```
 usage: index.js [-h] [-i INTERVAL] [-s STATE_DIR] [-m MODULE] [-r]
 
@@ -26,10 +25,11 @@ optional arguments:
   -r, --no-recursive    disable recursive directory searching
 ```
 
-To display to the screen, pipe the stdout to [ledcat](https://github.com/polyfloyd/ledcat).
+Since the display makes use of the protocol Hub75, [ledcat](https://github.com/polyfloyd/ledcat) will be used.
+Conveniently, ledcat also has a previewing option which prints the display in your terminal, since I'm not too fond of carrying around a bulky led panel.
 
 ```bash
-# use show mode for testing purposes
+# use preview mode for testing purposes
 node index.js | ledcat --geometry 128x32 show
 
 # driving the display using rpi-led-matrix
@@ -68,3 +68,9 @@ module.exports = {
 ```
 
 By default, all state files are included, even in subdirectories. If you don't want this, use the flag `-r, --no-recursive`.
+
+## Contributing
+Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
+
+## License
+[MIT](https://choosealicense.com/licenses/mit/)
