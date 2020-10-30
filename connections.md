@@ -48,5 +48,5 @@ This is the male header as seen from the top of the pi.
 |(2) B1|31|32|(2) R1|
 |(2) G2|33|34|(*) GND|
 |(2) R2|35|36|-|
-|-|37|38|-|
+|-|37|38|(2) B2|
 |(*) GND|39|40|-|
