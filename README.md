@@ -34,7 +34,10 @@ Conveniently, ledcat also has a previewing option which prints the display in yo
 python index.py | ledcat --geometry 128x32 show
 
 # driving the display using rpi-led-matrix
-python index.py | sudo ledcat --geometry 128x32 rpi-led-matrix --led-cols 32 --led-rows=16 --led-chain 4 --led-parallel=2
+python index.py | sudo ledcat --geometry 128x32 rpi-led-matrix --led-cols 32 --led-rows 16 --led-chain 4 --led-parallel 2
+
+# there is also a pre-configured script
+python index.py | ./ledcat
 ```
 
 ## State Modules
@@ -53,7 +56,7 @@ index: 0
 # if the boolean is false the state won't be shown
 
 # available arguments for the check eval function:
-# states = { djo: True/False, bitlair: True/False }
+# states = {'djo':True/False,'bitlair':True/False}
 
 check: true
 

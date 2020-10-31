@@ -5,6 +5,7 @@ import argparse
 import os
 import sys
 
+from datetime import datetime
 from mqtt import get_states
 from subprocess import Popen
 from os import path
@@ -59,7 +60,8 @@ def state_loop():
         space_state = get_states()
 
         new_state = get_state(state_modules, {
-            'state': space_state
+            'state': space_state,
+            'now': datetime.now()
         })
 
         if new_state != current_state:

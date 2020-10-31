@@ -1,4 +1,0 @@
-name: static
-index: 0
-check: true
-module: ./states/static/static.py
