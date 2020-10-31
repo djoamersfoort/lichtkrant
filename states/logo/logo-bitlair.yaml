@@ -1,0 +1,4 @@
+name: bitlair
+index: 0
+check: state['bitlair']
+command: ./states/logo/logo.sh ./states/logo/bitlair.jpg

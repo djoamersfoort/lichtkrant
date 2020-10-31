@@ -1,0 +1,4 @@
+name: djo
+index: 1
+check: state['djo']
+command: ./states/logo/logo.sh ./states/logo/djo.png
