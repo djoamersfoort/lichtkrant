@@ -1,4 +1,4 @@
 name: dvd
-index: 99 # this is amazing and should always be on top :)
+index: 0 # this is amazing and should always be on top :)
 check: true
 module: ./states/dvd/dvd.py

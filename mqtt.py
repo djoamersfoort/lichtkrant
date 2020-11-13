@@ -14,7 +14,7 @@ def on_message(client, userdata, message):
     states['bitlair' if message.topic == 'bitlair/state' else 'djo'] = message.payload.decode('utf-8') == 'open'
 
 client = mqtt.Client()
-client.connect('mqtt.bitlair.nl') # no mqtt:// protocol needed
+client.connect('bitlair.nl') # no mqtt:// protocol needed
 
 client.loop_start()
 

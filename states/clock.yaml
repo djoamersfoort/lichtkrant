@@ -1,6 +1,6 @@
 name: clock
 index: 0 # fallback
-check: true
+check: false
 command: >
   while true; do
     convert -background black -fill green -font Noto-Mono -pointsize 24 -size 128x32 -gravity center -depth 8 caption:"$(date +%T)" RGB:-

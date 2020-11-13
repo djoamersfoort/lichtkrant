@@ -1,0 +1,8 @@
+name: pauze
+index: 1
+check: now.weekday() == 5 and now.hour == 11 and now.minute >= 30 and now.minute <= 45
+command: >
+  while true; do
+    convert -background black -fill red -font Noto-Mono -pointsize 24 -size 128x32 -gravity center -depth 8 caption:"| PAUZE |" RGB:-
+    sleep 1;
+  done
