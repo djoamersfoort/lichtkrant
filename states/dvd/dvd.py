@@ -6,7 +6,7 @@ from logo import logo
 height = len(logo) - 1
 width = len(logo[0]) - 1
 
-winw = 128
+winw = 96
 winh = 32
 
 posx = randint(0, winw - width - 1)
