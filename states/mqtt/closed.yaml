@@ -1,0 +1,9 @@
+name: bitlair
+index: 100
+check: not states['bitlair'] and not states['djo']
+delay: 30
+command: >
+  while true; do
+    convert -background black -fill red -font Noto-Mono -pointsize 14 -size 96x32 -gravity center -depth 8 caption:"closed" RGB:-
+    sleep 1;
+  done
