@@ -12,11 +12,16 @@ winh = 32
 posx = randint(0, winw - width - 1)
 posy = randint(0, winh - height - 1)
 
-addx = 2
+addx = 1
 addy = 1
 
 color = bytes([100, 100, 100])
 background = bytes([0, 0, 0])
+
+frame = 0
+frame_wrap = 1
+
+frame_delay = 1/30
 
 def change_color(color):
     new_color = [color[0], color[1], color[2]]
@@ -38,26 +43,32 @@ def get_pixel(x, y):
     return color if logo[y - posy][x - posx] == 1 else background
 
 while True:
-    posx += addx
-    posy += addy
+    if frame == 0:
+        posx += addx
+        posy += addy
 
-    if (posx <= 0 or posx >= winw - width) and (posy <= 0 or posy >= winh - height):
-        for i in range(0, 10):
-            stdout.buffer.write(color * (128 * 32))
-            sleep(0.15)
-            stdout.buffer.write(background * (128 * 32))
-            sleep(0.15)
+        if (posx <= 0 or posx >= winw - width - 1) and (posy <= 0 or posy >= winh - height - 1):
+            for i in range(0, 10):
+                stdout.buffer.write(color * (128 * 32))
+                sleep(0.15)
+                stdout.buffer.write(background * (128 * 32))
+                sleep(0.15)
 
-    if posx <= 0 or posx >= winw - width:
-        addx *= -1
-        color = change_color(color)
+        if posx <= 0 or posx >= winw - width - 1:
+            addx *= -1
+            color = change_color(color)
 
-    if posy <= 0 or posy >= winh - height:
-        addy *= -1
-        color = change_color(color)
+        if posy <= 0 or posy >= winh - height - 1:
+            addy *= -1
+            color = change_color(color)
 
     for y in range(0, winh):
         for x in range(0, winw):
             stdout.buffer.write(get_pixel(x, y))
+    
+    if frame == frame_wrap:
+        frame = 0
+    else:
+        frame += 1
 
-    sleep(0.05)
+    sleep(frame_delay)

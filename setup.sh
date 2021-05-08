@@ -28,6 +28,9 @@ echo 'installing service'
 sudo mv lichtkrant.service /etc/systemd/system
 sudo systemctl daemon-reload
 
+echo 'starting service'
+sudo systemctl restart lichtkrant
+
 echo
 echo '[#] finished installation'
 
