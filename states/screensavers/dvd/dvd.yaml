@@ -1,4 +1,5 @@
 name: dvd
 index: 0 # this is amazing and should always be on top :)
 check: true
+delay: 120
 module: ./states/dvd/dvd.py

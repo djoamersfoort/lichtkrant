@@ -23,8 +23,6 @@ A driver for the DJO Lichtkrant project.
 
 optional arguments:
   -h, --help            show this help message and exit
-  -i INTERVAL, --interval INTERVAL
-                        the delay in milliseconds between updates
   -m MODULE, --module MODULE
                         load a specific module by name
   -s STATE_DIR, --state-dir STATE_DIR
@@ -57,14 +55,17 @@ An example state file:
 name: example
 
 # the state with the highest index is shown
+# if multiple states have the same index it will be randomly selected
 index: 0
+
+# delay in seconds to wait until the next update
+delay: 10
 
 # either a boolean or an eval string returning a boolean
 # if the boolean is false the state won't be shown
 
 # available arguments for the check eval function:
 # states = {'djo':True/False,'bitlair':True/False}
-
 check: true
 
 # the command that is ran when the module is enabled

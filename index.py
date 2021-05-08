@@ -2,6 +2,7 @@
 
 import yaml
 import argparse
+import random
 import os
 import sys
 
@@ -16,10 +17,10 @@ from glob import glob
 
 parser = argparse.ArgumentParser(description='A driver for the DJO Lichtkrant project.')
 
-parser.add_argument('-i', '--interval', type=int, default=2500, help='the delay in milliseconds between updates')
 parser.add_argument('-m', '--module', default=None, help='load a specific module by name')
 parser.add_argument('-s', '--state-dir', default='./states', help='path to the states directory')
 parser.add_argument('-r', '--recursive', type=bool, default=True, help='whether to search recursively')
+parser.add_argument('-d', '--dry', action='store_true', default=False, help='do not spew out pixel data')
 
 args = parser.parse_args()
 
@@ -37,14 +38,21 @@ def get_state(states, globals):
         except IndexError:
             raise Exception('The module passed does not exist.')
 
-    # filter and sort through states
+    # filter states
     filtered_states = [s for s in states if (eval(s['check'], globals) if isinstance(s['check'], str) else s['check'])]
+    
+    # return random with highest index
+    random.shuffle(filtered_states)
     return sorted(filtered_states, key=lambda s: s['index'], reverse=True)[0] if len(filtered_states) > 0 else None
 
 # running states
 
 def run_state(state):
-    return Popen(state['command'], shell=True) if 'command' in state else Popen([sys.executable, state['module']]) if 'module' in state else None
+    if args.dry:
+        print(f"state: {state['name']}")
+        return None
+    else:
+        return Popen(state['command'], shell=True) if 'command' in state else Popen([sys.executable, state['module']]) if 'module' in state else None
 
 # the main logic
 
@@ -73,7 +81,10 @@ def state_loop():
             if current_state is not None:
                 current_process = run_state(current_state)
 
-        sleep(args.interval / 1000)
+        if 'delay' in current_state:
+            sleep(current_state['delay'])
+        else:
+            raise Exception('The module does not contain a delay.')
 try:
     state_loop()
 except KeyboardInterrupt:
