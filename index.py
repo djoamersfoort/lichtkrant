@@ -68,7 +68,7 @@ def state_loop():
         space_state = get_states()
 
         new_state = get_state(state_modules, {
-            'state': space_state,
+            'states': space_state,
             'now': datetime.now()
         })
 
