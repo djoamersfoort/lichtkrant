@@ -1,6 +1,6 @@
 name: bitlair
 index: 99
-check: true
+check: states['bitlair']
 delay: 30
 command: >
   while true; do
