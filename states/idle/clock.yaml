@@ -1,7 +1,7 @@
 name: clock
 index: 0
 check: true
-delay: 120
+delay: 60
 command: >
   while true; do
     convert -background black -fill green -font Noto-Mono -pointsize 20 -size 96x32 -gravity center -depth 8 caption:"$(date +%T)" RGB:-
