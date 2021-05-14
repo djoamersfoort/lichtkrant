@@ -2,6 +2,7 @@ from time import sleep
 import sys
 from PIL import Image, ImageDraw, ImageFont
 
+
 # shutdown after 1 minute
 # os.system("shutdown 1")
 
