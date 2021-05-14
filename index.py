@@ -65,8 +65,7 @@ def run_state(state):
         print(f"state: {state.name}")
         return None
 
-    thread_dir = path.dirname(state.__file__)
-    thread = threading.Thread(target=state.run, args=[thread_dir])
+    thread = threading.Thread(target=state.run)
     thread.start()
 
     return thread

@@ -19,10 +19,10 @@ def check(state):
 
 
 # module runner
-def run(dir):
+def run():
     # shutdown text
     font_path = "/usr/share/fonts/truetype/noto/NotoMono-Regular.ttf"
-    text = "PAUZE"
+    text = "|PAUZE|"
 
     break_end = datetime.today()
     break_end = break_end.replace(hour=11, minute=45)
@@ -40,6 +40,6 @@ def run(dir):
         font = ImageFont.truetype(font_path, size=12)
         draw.text((48, 29), date_text, fill="yellow", anchor="mb", font=font)
 
-        for _i in range(15):
+        for _i in range(19):
             [sys.stdout.buffer.write(bytes(a)) for a in image.getdata()]
             sleep(0.05)

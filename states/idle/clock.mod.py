@@ -16,7 +16,7 @@ def check(state):
 
 
 # module runner
-def run(dir):
+def run():
     # shutdown text
     font_path = "/usr/share/fonts/truetype/noto/NotoMono-Regular.ttf"
 
@@ -30,6 +30,6 @@ def run(dir):
         font = ImageFont.truetype(font_path, size=19)
         draw.text((48, 16), time_str, fill="green", anchor="mm", font=font)
 
-        for _i in range(15):
+        for _i in range(19):
             [sys.stdout.buffer.write(bytes(a)) for a in image.getdata()]
             sleep(0.05)
