@@ -76,9 +76,9 @@ def run():
 
         if horizontal_hit and vertical_hit:
             for i in range(0, 10):
-                stdout.buffer.write(color * (128 * 32))
+                stdout.buffer.write(color * 3072)
                 sleep(0.15)
-                stdout.buffer.write(background * (128 * 32))
+                stdout.buffer.write(background * 3072)
                 sleep(0.15)
 
         if horizontal_hit:
