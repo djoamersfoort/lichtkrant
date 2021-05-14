@@ -7,10 +7,7 @@ A Chinese Hub75 LED panel reincarnated as a fancy marquee used at DJO.
 git clone https://github.com/djoamersfoort/lichtkrant
 cd lichtkrant
 
-# use sudo because the systemd service runs as root
-sudo pip install -r requirements.txt
-
-# generate a systemd file
+# automatic installation
 chmod +x *.sh
 ./migrate.sh
 ```
