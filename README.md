@@ -17,7 +17,7 @@ chmod +x *.sh
 
 ## Usage
 ```
-usage: index.py [-h] [-i INTERVAL] [-m MODULE] [-s STATE_DIR] [-r RECURSIVE]
+usage: index.py [-h] [-m MODULE] [-s STATE_DIR] [-r RECURSIVE]
 
 A driver for the DJO Lichtkrant project.
 
@@ -40,40 +40,43 @@ python index.py | ledcat --geometry 128x32 show
 
 # driving the display using rpi-led-matrix
 python index.py | sudo ledcat --geometry 128x32 rpi-led-matrix --led-cols 32 --led-rows 16 --led-chain 4 --led-parallel 2
-
-# there is also a pre-configured script
-python index.py | ./ledcat
 ```
 
 ## State Modules
 
-The system works based on state modules. These are YAML files ending in `.yaml`
+The system works based on state modules. These are Python files ending in `.mod.py`
 
 An example state file:
-```yaml
+```python
+import sys
+from time import sleep
+
 # give the state a name
-name: example
+# this name should be unique!
+name = "example"
 
 # the state with the highest index is shown
 # if multiple states have the same index it will be randomly selected
-index: 0
+index = 0
 
 # delay in seconds to wait until the next update
-delay: 10
+delay = 60
 
-# either a boolean or an eval string returning a boolean
-# if the boolean is false the state won't be shown
 
-# available arguments for the check eval function:
-# states = {'djo':True/False,'bitlair':True/False}
-check: true
+# this function decides if the module will be shown
+# the check function must return a boolean
+# the spacestate is available as the first argument
+def check(states):
+    return states['djo'] is False
 
-# the command that is ran when the module is enabled
-command: perl -e 'while(1){{print "\\x00\\x00\\xff" x 4096}}'
 
-# a python module can also be passed instead of a command
-# note that the path is relative to the index python file
-# module: "text.py"
+# a function that is called when running the module
+# in this case it just fills the screen with white
+def run():
+    while True:
+        sys.stdout.buffer.write(bytes([0xFF] * 3072))
+
+    sleep(0.05)
 ```
 
 By default, all state files are included, even in subdirectories. If you don't want this, set the flag `-r, --recursive` to false.

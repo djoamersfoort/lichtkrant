@@ -1,5 +1,0 @@
-name: dvd
-index: 0 # this is amazing and should always be on top :)
-check: true
-delay: 60
-module: ./states/idle/dvd/dvd.py

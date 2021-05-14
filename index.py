@@ -5,6 +5,7 @@ import threading
 import argparse
 import random
 
+from os import path
 from time import sleep
 from glob import glob
 from mqtt import get_states
@@ -25,8 +26,10 @@ parser.add_argument('-d', '--dry', action='store_true',
 args = parser.parse_args()
 
 
-def import_module(path):
-    spec = importlib.util.spec_from_file_location('', path)
+def import_module(loc):
+    name = path.basename(loc).replace('.mod.py', '', -1)
+    spec = importlib.util.spec_from_file_location(name, loc)
+
     return spec.loader.load_module()
 
 
@@ -62,7 +65,8 @@ def run_state(state):
         print(f"state: {state.name}")
         return None
 
-    thread = threading.Thread(target=state.run)
+    thread_dir = path.dirname(state.__file__)
+    thread = threading.Thread(target=state.run, args=[thread_dir])
     thread.start()
 
     return thread
