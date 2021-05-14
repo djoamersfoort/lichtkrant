@@ -7,7 +7,7 @@ from PIL import Image, ImageDraw, ImageFont
 # module information
 name = "clock"
 index = 0
-delay = 60
+delay = 30
 
 
 # module check function
