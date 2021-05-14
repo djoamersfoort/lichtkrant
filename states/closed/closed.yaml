@@ -1,0 +1,5 @@
+name: closed
+index: 99
+check: states['djo'] == False
+delay: 120
+module: states/closed/closed.py

@@ -3,18 +3,22 @@
 import paho.mqtt.client as mqtt
 
 states = {
-    'djo': False,
-    'bitlair': False
+    'djo': None,
+    'bitlair': None
 }
+
 
 def get_states():
     return states
 
-def on_message(client, userdata, message):
-    states['bitlair' if message.topic == 'bitlair/state' else 'djo'] = message.payload.decode('utf-8') == 'open'
+
+def on_message(_client, _userdata, message):
+    topic = 'bitlair' if message.topic == 'bitlair/state' else 'djo'
+    states[topic] = message.payload.decode('utf-8') == 'open'
+
 
 client = mqtt.Client()
-client.connect('bitlair.nl') # no mqtt:// protocol needed
+client.connect('bitlair.nl')  # no mqtt:// protocol needed
 
 client.loop_start()
 
