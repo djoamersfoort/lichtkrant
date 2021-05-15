@@ -33,10 +33,12 @@ Conveniently, ledcat also has a previewing option which prints the display in yo
 
 ```bash
 # use preview mode for testing purposes
-python index.py | ledcat --geometry 128x32 show
+python index.py | ledcat --geometry 96x32 show
 
 # driving the display using rpi-led-matrix
-python index.py | sudo ledcat --geometry 128x32 rpi-led-matrix --led-cols 32 --led-rows 16 --led-chain 4 --led-parallel 2
+python index.py | sudo ledcat --geometry 96x32 rpi-led-matrix --led-cols 32 --led-rows 16 --led-chain 3 --led-parallel 2
+
+# see run.py for a 'finetuned' configuration
 ```
 
 ## State Modules
