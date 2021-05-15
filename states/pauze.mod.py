@@ -19,7 +19,7 @@ def check(state):
 
 
 # module runner
-def run():
+def run(_state):
     # shutdown text
     font_path = "/usr/share/fonts/truetype/noto/NotoMono-Regular.ttf"
     text = "|PAUZE|"

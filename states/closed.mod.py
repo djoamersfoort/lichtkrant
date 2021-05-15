@@ -13,11 +13,11 @@ delay = 120
 
 # module check function
 def check(state):
-    return state['djo'] is False
+    return state['djo'] == "closed"
 
 
 # module runner
-def run():
+def run(_state):
     # shutdown after 1 minute
     os.system("shutdown 1")
 

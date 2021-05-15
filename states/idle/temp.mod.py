@@ -1,22 +1,21 @@
 import sys
 from time import sleep
-from datetime import datetime
 from PIL import Image, ImageDraw, ImageFont
 
 
 # module information
-name = "clock"
+name = "temp"
 index = 0
-delay = 30
+delay = 12
 
 
 # module check function
-def check(_state):
+def check(state):
     return True
 
 
 # module runner
-def run(_state):
+def run(state):
     # shutdown text
     font_path = "/usr/share/fonts/truetype/noto/NotoMono-Regular.ttf"
 
@@ -24,11 +23,11 @@ def run(_state):
         image = Image.new("RGB", (96, 32), "black")
         font = ImageFont.truetype(font_path, size=20)
 
-        time_str = datetime.now().strftime("%H:%M:%S")
+        temp = round(float(state['temperature']), 1)
 
         draw = ImageDraw.Draw(image)
         font = ImageFont.truetype(font_path, size=19)
-        draw.text((48, 16), time_str, fill="green", anchor="mm", font=font)
+        draw.text((48, 16), f"{temp} °C", fill="blue", anchor="mm", font=font)
 
         [sys.stdout.buffer.write(bytes(a)) for a in image.getdata()]
         sleep(0.05)

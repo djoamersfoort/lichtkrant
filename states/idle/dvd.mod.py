@@ -34,7 +34,7 @@ frame_delay = 1/30
 
 
 # module runner
-def run():
+def run(_state):
     # variables
     posx = randint(0, winw - width - 2)
     posy = randint(0, winh - height - 2)

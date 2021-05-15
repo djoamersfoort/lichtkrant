@@ -65,7 +65,8 @@ def run_state(state):
         print(f"state: {state.name}")
         return None
 
-    process = Process(target=state.run)
+    states = get_states()
+    process = Process(target=state.run, args=[states])
     process.start()
 
     return process

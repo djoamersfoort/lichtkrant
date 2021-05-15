@@ -23,7 +23,7 @@ frame_delay = 1/30
 
 
 # module runner
-def run():
+def run(_state):
     p1_y = 16
     p2_y = 16
 
