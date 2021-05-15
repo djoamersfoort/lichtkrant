@@ -82,7 +82,6 @@ def run():
             posy = winh / 2
 
         if hit_paddle:
-            addy *= -1
             addx *= -1
 
         p1_y = move_paddle(offset, p1_y)

@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 
 import importlib.util
-import threading
 import argparse
 import random
 
@@ -9,6 +8,7 @@ from os import path
 from time import sleep
 from glob import glob
 from mqtt import get_states
+from multiprocessing import Process
 
 # parsing command-line arguments
 parser = argparse.ArgumentParser(
@@ -65,10 +65,10 @@ def run_state(state):
         print(f"state: {state.name}")
         return None
 
-    thread = threading.Thread(target=state.run)
-    thread.start()
+    process = Process(target=state.run)
+    process.start()
 
-    return thread
+    return process
 
 
 def state_loop():
@@ -77,7 +77,7 @@ def state_loop():
 
     # the state update loop
     current_state = None
-    current_thread = None
+    current_process = None
 
     while True:
         space_state = get_states()
@@ -86,11 +86,12 @@ def state_loop():
         if new_state != current_state:
             current_state = new_state
 
-            if current_thread is not None:
-                current_thread.stop()
+            if current_process is not None:
+                current_process.terminate()
+                sleep(1)  # sleep to reset outlining
 
             if current_state is not None:
-                current_thread = run_state(current_state)
+                current_process = run_state(current_state)
 
         # delay
         sleep(current_state.delay if current_state is not None else 1)

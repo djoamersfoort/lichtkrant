@@ -75,7 +75,7 @@ def run():
         vertical_hit = posy <= 0 or posy >= winh - height - 1
 
         if horizontal_hit and vertical_hit:
-            for i in range(0, 10):
+            for _i in range(0, 10):
                 stdout.buffer.write(color * 3072)
                 sleep(0.15)
                 stdout.buffer.write(background * 3072)
