@@ -140,3 +140,4 @@ cython_debug/
 # lichtkrant
 lichtkrant.service
 ledcat
+credentials.py

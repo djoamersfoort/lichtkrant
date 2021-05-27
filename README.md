@@ -14,7 +14,7 @@ chmod +x *.sh
 
 ## Usage
 ```
-usage: index.py [-h] [-m MODULE] [-s STATE_DIR] [-r RECURSIVE]
+usage: index.py [-h] [-m MODULE] [-s STATE_DIR] [-r RECURSIVE] [-d] [-o]
 
 A driver for the DJO Lichtkrant project.
 
@@ -26,6 +26,8 @@ optional arguments:
                         path to the states directory
   -r RECURSIVE, --recursive RECURSIVE
                         whether to search recursively
+  -d, --dry             do not spew out pixel data
+  -o, --offline         disable MQTT connectivity
 ```
 
 Since the display makes use of the protocol Hub75, [ledcat](https://github.com/polyfloyd/ledcat) will be used.
@@ -33,10 +35,10 @@ Conveniently, ledcat also has a previewing option which prints the display in yo
 
 ```bash
 # use preview mode for testing purposes
-python index.py | ledcat --geometry 96x32 show
+./debug.sh # [extra arguments]
 
 # driving the display using rpi-led-matrix
-python index.py | sudo ledcat --geometry 96x32 rpi-led-matrix --led-cols 32 --led-rows 16 --led-chain 3 --led-parallel 2
+./run.sh # [extra arguments]
 
 # see run.py for a 'finetuned' configuration
 ```

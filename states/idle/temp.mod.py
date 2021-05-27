@@ -11,7 +11,7 @@ delay = 12
 
 # module check function
 def check(state):
-    return True
+    return state['temperature'] is not None
 
 
 # module runner

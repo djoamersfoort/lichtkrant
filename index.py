@@ -3,11 +3,12 @@
 import importlib.util
 import argparse
 import random
+import mqtt
+import time
 
 from os import path
 from time import sleep
 from glob import glob
-from mqtt import get_states
 from multiprocessing import Process
 
 # parsing command-line arguments
@@ -22,6 +23,8 @@ parser.add_argument('-r', '--recursive', type=bool,
                     default=True, help='whether to search recursively')
 parser.add_argument('-d', '--dry', action='store_true',
                     default=False, help='do not spew out pixel data')
+parser.add_argument('-o', '--offline', action='store_true',
+                    default=False, help='disable MQTT connectivity')
 
 args = parser.parse_args()
 
@@ -65,7 +68,7 @@ def run_state(state):
         print(f"state: {state.name}")
         return None
 
-    states = get_states()
+    states = mqtt.get_states()
     process = Process(target=state.run, args=[states])
     process.start()
 
@@ -81,7 +84,7 @@ def state_loop():
     current_process = None
 
     while True:
-        space_state = get_states()
+        space_state = mqtt.get_states()
         new_state = get_state(state_modules, space_state)
 
         if new_state != current_state:
@@ -89,14 +92,27 @@ def state_loop():
 
             if current_process is not None:
                 current_process.terminate()
-                sleep(1)  # sleep to reset outlining
+                # sleep(1)  # sleep to reset outlining
 
             if current_state is not None:
                 current_process = run_state(current_state)
 
-        # delay
-        sleep(current_state.delay if current_state is not None else 1)
+        # delay or force update if neccesary
+        end_time = time.time() + new_state.delay
 
+        while True:
+            if time.time() >= end_time:
+                break
+
+            diff_state = get_state(state_modules, space_state)
+
+            if diff_state.index > new_state.index:
+                break
+
+            sleep(1)
+
+
+mqtt.connect(not args.offline)
 
 try:
     state_loop()
