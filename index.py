@@ -92,7 +92,7 @@ def state_loop():
 
             if current_process is not None:
                 current_process.terminate()
-                # sleep(1)  # sleep to reset outlining
+                sleep(1)  # sleep to reset outlining
 
             if current_state is not None:
                 current_process = run_state(current_state)
@@ -109,7 +109,7 @@ def state_loop():
             if diff_state.index > new_state.index:
                 break
 
-            sleep(1)
+            sleep(4)
 
 
 mqtt.connect(not args.offline)
