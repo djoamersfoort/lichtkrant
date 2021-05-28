@@ -30,6 +30,8 @@ def get_data():
 
 def get_image(data):
 
+    is_rainy = False
+
     font_path = "/usr/share/fonts/truetype/noto/NotoMono-Regular.ttf"
     font = ImageFont.truetype(font_path, size=10)
 
@@ -43,6 +45,9 @@ def get_image(data):
 
     for i in range(0, len(data)):
         value = data[i]['value']
+
+        if value > 5:
+            is_rainy = True
         # value = randint(0, 100)
 
         newx = oldx + xinc
@@ -64,7 +69,9 @@ def get_image(data):
     draw.text((0, 1), start_time, font=font, fill="grey", anchor="lt")
     end_time = (datetime.now() + timedelta(minutes=30)).strftime("%H:%M")
     draw.text((95, 1), end_time, font=font, fill="grey", anchor="rt")
-    draw.text((48, 1), "REGEN", font=font, fill="white", anchor="mt")
+
+    rain_text = "REGEN" if is_rainy else "DROOG"
+    draw.text((48, 1), rain_text, font=font, fill="white", anchor="mt")
 
     return image
 
