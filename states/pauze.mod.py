@@ -14,8 +14,7 @@ delay = 30
 # module check function
 def check(state):
     now = datetime.now()
-    return (now.weekday() == 5 and now.hour == 11 and
-            now.minute >= 30 and now.minute <= 45)
+    return now.weekday() == 5 and now.hour == 11 and 30 <= now.minute <= 45
 
 
 # module runner
