@@ -33,7 +33,10 @@ def import_module(loc):
     name = path.basename(loc).replace('.mod.py', '', -1)
     spec = importlib.util.spec_from_file_location(name, loc)
 
-    return spec.loader.load_module()
+    module = spec.loader.load_module()
+    if hasattr(module, 'init'):
+        module.init()
+    return module
 
 
 def read_dir(location):
