@@ -42,7 +42,15 @@ class LichtKrant:
                 raise Exception('The module passed does not exist.')
 
         # filter states
-        filtered_states = [s for s in states if s.check(space_state)]
+        filtered_states = []
+        for state in states:
+            context = self.module_context[state.name] if state.name in self.module_context else None
+            if context is not None:
+                active = state.check(space_state, context)
+            else:
+                active = state.check(space_state)
+            if active:
+                filtered_states.append(state)
 
         # return random with highest index
         random.shuffle(filtered_states)
