@@ -9,14 +9,16 @@ import time
 from os import path
 from time import sleep
 from glob import glob
-from killable_thread import KillableThread
+from multiprocessing import Process, Manager
 
 
 class LichtKrant:
 
     def __init__(self, args):
-        self.module_context = {}
         self.args = args
+        self.manager = Manager()
+        self.module_context = self.manager.dict()
+
         mqtt.connect(not args.offline)
 
     def import_module(self, loc):
@@ -69,9 +71,9 @@ class LichtKrant:
         states = mqtt.get_states()
         context = self.module_context[state.name] if state.name in self.module_context else None
         if context is not None:
-            process = KillableThread(target=state.run, name=state.name, args=(states, context))
+            process = Process(target=state.run, args=(states, context))
         else:
-            process = KillableThread(target=state.run, name=state.name, args=(states,))
+            process = Process(target=state.run, args=(states,))
         process.start()
 
         return process
@@ -92,8 +94,7 @@ class LichtKrant:
                 current_state = new_state
 
                 if current_process is not None:
-                    current_process.kill()
-                    current_process.join(1)
+                    current_process.terminate()
                     sleep(1)  # sleep to reset outlining
 
                 if current_state is not None:
