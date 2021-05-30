@@ -87,8 +87,9 @@ def run(_state):
         p1_y = move_paddle(offset, p1_y)
         p2_y = move_paddle(winw - offset, p2_y)
 
+        frame = b''
         for y in range(0, winh):
             for x in range(0, winw):
-                stdout.buffer.write(get_pixel(x, y))
-
+                frame += get_pixel(x, y)
+        stdout.buffer.write(frame)
         sleep(frame_delay)

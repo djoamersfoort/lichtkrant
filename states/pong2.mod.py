@@ -117,13 +117,13 @@ def run(_state, context):
         if x == 95:
             return red
 
-        if x > 49 and x < 53 and y > 25 and y < 31:
+        if 49 < x < 53 and 25 < y < 31:
             if p2_win:
                 return number(50, 26, p2_points, green)
             else:
                 return number(50, 26, p2_points, color)
 
-        if x < 47 and x > 43 and y > 25 and y < 31:
+        if 47 > x > 43 and 25 < y < 31:
             if p1_win:
                 return number(44, 26, p1_points, green)
             else:
@@ -207,15 +207,20 @@ def run(_state, context):
         else:
             p2_y = move_paddle(winw - offset, p2_y)
 
+        frame = b''
         for y in range(0, winh):
             for x in range(0, winw):
-                stdout.buffer.write(get_pixel(x, y, p1_win, p2_win))
+                frame += get_pixel(x, y, p1_win, p2_win)
+        stdout.buffer.write(frame)
 
         if p1_win or p2_win:
+            frame = b''
+            for y in range(0, winh):
+                for x in range(0, winw):
+                    frame += get_pixel(x, y, p1_win, p2_win)
+
             for i in range(150):
-                for y in range(0, winh):
-                    for x in range(0, winw):
-                        stdout.buffer.write(get_pixel(x, y, p1_win, p2_win))
+                stdout.buffer.write(frame)
                 sleep(frame_delay)
 
         sleep(frame_delay)

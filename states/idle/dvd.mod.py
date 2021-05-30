@@ -88,9 +88,11 @@ def run(_state):
             addy *= -1
             color = change_color(color)
 
-        for _i in range(2):
-            for y in range(0, winh):
-                for x in range(0, winw):
-                    stdout.buffer.write(get_pixel(x, y))
+        frame = b''
+        for y in range(0, winh):
+            for x in range(0, winw):
+                frame += get_pixel(x, y)
 
+        for _i in range(2):
+            stdout.buffer.write(frame)
             sleep(frame_delay)
