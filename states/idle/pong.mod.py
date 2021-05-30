@@ -8,7 +8,7 @@ class State(BaseState):
     # module information
     name = "pong"
     index = 0
-    delay = 3
+    delay = 30
 
     winw = 96
     winh = 32

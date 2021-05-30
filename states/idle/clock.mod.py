@@ -9,7 +9,7 @@ class State(BaseState):
     # module information
     name = "clock"
     index = 0
-    delay = 3
+    delay = 30
 
     # module check function
     def check(self, _state):
