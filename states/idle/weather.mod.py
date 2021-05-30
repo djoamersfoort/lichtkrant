@@ -82,5 +82,5 @@ def run(_state):
     image = get_image(data)
 
     while True:
-        [stdout.buffer.write(bytes(a)) for a in image.getdata()]
+        stdout.buffer.write(image.tobytes())
         sleep(1)

@@ -32,5 +32,5 @@ def run(_state):
     draw.text((48, 16), text, fill="red", anchor="mm", font=font)
 
     while True:
-        [sys.stdout.buffer.write(bytes(a)) for a in image.getdata()]
-        sleep(0.05)
+        sys.stdout.buffer.write(image.tobytes())
+        sleep(1)

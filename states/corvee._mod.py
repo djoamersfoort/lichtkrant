@@ -13,8 +13,7 @@ delay = 120
 # module check function
 def check(_state):
     now = datetime.now()
-    return (now.weekday() == 5 and now.hour == 12 and
-            now.minute >= 30 and now.minute <= 35)
+    return now.weekday() == 5 and now.hour == 12 and 30 <= now.minute <= 35
 
 
 names = ["jan", "klaas", "piet", "gert", "tjeerd", "johan", "bart"]
@@ -67,5 +66,5 @@ def run(_state):
                 fill=["red", "green", "blue"][i], anchor="mt", font=font)
 
     while True:
-        [stdout.buffer.write(bytes(a)) for a in image.getdata()]
+        stdout.buffer.write(image.tobytes())
         sleep(1)

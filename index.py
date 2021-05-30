@@ -57,7 +57,7 @@ class LichtKrant:
         # return random with highest index
         random.shuffle(filtered_states)
 
-        if not filtered_states:
+        if len(filtered_states) == 0:
             return None
 
         return sorted(filtered_states, key=lambda s: s.index, reverse=True)[0]

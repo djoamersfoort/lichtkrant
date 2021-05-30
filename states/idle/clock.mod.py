@@ -30,5 +30,5 @@ def run(_state):
         font = ImageFont.truetype(font_path, size=19)
         draw.text((48, 16), time_str, fill="green", anchor="mm", font=font)
 
-        [sys.stdout.buffer.write(bytes(a)) for a in image.getdata()]
+        sys.stdout.buffer.write(image.tobytes())
         sleep(0.05)

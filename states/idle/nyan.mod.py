@@ -36,5 +36,5 @@ def run(_state):
 
     while True:
         for frame in sequence:
-            [stdout.buffer.write(bytes(a)) for a in frame.getdata()]
+            stdout.buffer.write(frame.tobytes())
             sleep(0.05)
