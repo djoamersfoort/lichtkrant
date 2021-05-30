@@ -2,85 +2,81 @@ from PIL import Image, ImageDraw, ImageFont
 from time import sleep
 from sys import stdout
 from datetime import datetime, timedelta
-# from random import randint
-
+from states.base import BaseState
 import requests
 import json
 import math
 
-# module information
-name = "weather"
-index = 0
-delay = 12
 
+class State(BaseState):
 
-# check function
-def check(_state):
-    return True
+    # module information
+    name = "weather"
+    index = 0
+    delay = 12
 
+    url = "https://graphdata.buienradar.nl/2.0/forecast/geo/Rain3Hour?lat=52.09&lon=5.12&btc=202105271011&ak=3c4a3037-85e6-4d1e-ad6c-f3f6e4b75f2f"
 
-url = "https://graphdata.buienradar.nl/2.0/forecast/geo/Rain3Hour?lat=52.09&lon=5.12&btc=202105271011&ak=3c4a3037-85e6-4d1e-ad6c-f3f6e4b75f2f"
+    # check function
+    def check(self, _state):
+        return True
 
+    def get_data(self):
+        req = requests.get(self.url)
+        data = json.loads(req.text)
+        return data['forecasts']
 
-def get_data():
-    req = requests.get(url)
-    data = json.loads(req.text)
-    return data['forecasts']
+    def get_image(self, data):
+        is_rainy = False
 
+        font_path = "/usr/share/fonts/truetype/noto/NotoMono-Regular.ttf"
+        font = ImageFont.truetype(font_path, size=10)
 
-def get_image(data):
+        image = Image.new("RGB", (96, 32))
+        draw = ImageDraw.Draw(image)
 
-    is_rainy = False
+        xinc = math.ceil(96 / len(data))
 
-    font_path = "/usr/share/fonts/truetype/noto/NotoMono-Regular.ttf"
-    font = ImageFont.truetype(font_path, size=10)
+        oldx = 0
+        oldy = 0
 
-    image = Image.new("RGB", (96, 32))
-    draw = ImageDraw.Draw(image)
+        for i in range(0, len(data)):
+            value = data[i]['value']
 
-    xinc = math.ceil(96 / len(data))
+            if value > 5:
+                is_rainy = True
+            # value = randint(0, 100)
 
-    oldx = 0
-    oldy = 0
+            newx = oldx + xinc
+            newy = min((value / 100) * 2, 1) * 21
 
-    for i in range(0, len(data)):
-        value = data[i]['value']
+            fill = "green"
 
-        if value > 5:
-            is_rainy = True
-        # value = randint(0, 100)
+            if value > 70:
+                fill = "red"
+            elif value > 40:
+                fill = "orange"
 
-        newx = oldx + xinc
-        newy = min((value / 100) * 2, 1) * 21
+            draw.line([(oldx, 31 - oldy), (newx, 31 - newy)], fill=fill)
 
-        fill = "green"
+            oldx = newx
+            oldy = newy
 
-        if value > 70:
-            fill = "red"
-        elif value > 40:
-            fill = "orange"
+        start_time = datetime.now().strftime("%H:%M")
+        draw.text((0, 1), start_time, font=font, fill="grey", anchor="lt")
+        end_time = (datetime.now() + timedelta(minutes=30)).strftime("%H:%M")
+        draw.text((95, 1), end_time, font=font, fill="grey", anchor="rt")
 
-        draw.line([(oldx, 31 - oldy), (newx, 31 - newy)], fill=fill)
+        rain_text = "REGEN" if is_rainy else "DROOG"
+        draw.text((48, 1), rain_text, font=font, fill="white", anchor="mt")
 
-        oldx = newx
-        oldy = newy
+        return image
 
-    start_time = datetime.now().strftime("%H:%M")
-    draw.text((0, 1), start_time, font=font, fill="grey", anchor="lt")
-    end_time = (datetime.now() + timedelta(minutes=30)).strftime("%H:%M")
-    draw.text((95, 1), end_time, font=font, fill="grey", anchor="rt")
+    # module runner
+    def run(self):
+        data = self.get_data()
+        image = self.get_image(data)
 
-    rain_text = "REGEN" if is_rainy else "DROOG"
-    draw.text((48, 1), rain_text, font=font, fill="white", anchor="mt")
-
-    return image
-
-
-# module runner
-def run(_state):
-    data = get_data()
-    image = get_image(data)
-
-    while True:
-        stdout.buffer.write(image.tobytes())
-        sleep(1)
+        while not self.killed:
+            stdout.buffer.write(image.tobytes())
+            sleep(1)

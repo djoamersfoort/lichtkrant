@@ -1,95 +1,96 @@
 from sys import stdout
 from time import sleep
+from states.base import BaseState
 import random
 
-# module information
-name = "pong"
-index = 0
-delay = 30
 
+class State(BaseState):
+    # module information
+    name = "pong"
+    index = 0
+    delay = 3
 
-# check function
-def check(state):
-    return True
+    winw = 96
+    winh = 32
+    offset = 6
+    height = 8
 
+    color = bytes([255, 255, 255])
+    frame_delay = 1 / 30
 
-winw = 96
-winh = 32
-offset = 6
-height = 8
+    # check function
+    def check(self, state):
+        self.state = state
+        return True
 
-color = bytes([255, 255, 255])
-frame_delay = 1/30
+    # module runner
+    def run(self):
+        p1_y = 16
+        p2_y = 16
 
+        posx = self.winw / 2
+        posy = self.winh / 2
+        addx = 1
+        addy = 1
 
-# module runner
-def run(_state):
-    p1_y = 16
-    p2_y = 16
+        # variables
+        def get_pixel(x, y):
+            if x == posx and y == posy:
+                return self.color
 
-    posx = winw / 2
-    posy = winh / 2
-    addx = 1
-    addy = 1
+            if x == self.offset and (p1_y + self.height > y > p1_y - self.height):
+                return self.color
 
-    # variables
-    def get_pixel(x, y):
-        if x == posx and y == posy:
-            return color
+            if x == self.winw - self.offset and (p2_y + self.height > y > p2_y - self.height):
+                return self.color
 
-        if x == offset and (y < p1_y + height and y > p1_y - height):
-            return color
+            if x == self.winw / 2 and y % 2 == 0:
+                return self.color
 
-        if x == winw - offset and (y < p2_y + height and y > p2_y - height):
-            return color
+            return bytes([0, 0, 0])
 
-        if x == winw / 2 and y % 2 == 0:
-            return color
+        def move_paddle(px, py):
+            up = posy > py
 
-        return bytes([0, 0, 0])
+            if abs(px - posx) > self.winw / 2:
+                up = not up
 
-    def move_paddle(px, py):
-        up = posy > py
+            if random.randint(0, 10) < 8:
+                if up and py + self.offset < self.winh - 3:
+                    py += 1
+                elif not up and py - self.offset > 2:
+                    py -= 1
 
-        if abs(px - posx) > winw / 2:
-            up = not up
+            return py
 
-        if random.randint(0, 10) < 8:
-            if up and py + offset < winh - 3:
-                py += 1
-            elif not up and py - offset > 2:
-                py -= 1
+        def check_hit(px, py):
+            return posx == px and posy - self.height < py < posy + self.height
 
-        return py
+        # 'game' loop
+        while not self.killed:
+            posx += addx
+            posy += addy
 
-    def check_hit(px, py):
-        return posx == px and py > posy - height and py < posy + height
+            hit_paddle = check_hit(self.offset, p1_y) or check_hit(self.winw - self.offset, p2_y)
+            hit_edge_h = posx <= 0 or posx >= self.winw - 1
+            hit_edge_v = posy <= 0 or posy >= self.winh - 1
 
-    # 'game' loop
-    while True:
-        posx += addx
-        posy += addy
+            if hit_edge_v:
+                addy *= -1
 
-        hit_paddle = check_hit(offset, p1_y) or check_hit(winw - offset, p2_y)
-        hit_edge_h = posx <= 0 or posx >= winw - 1
-        hit_edge_v = posy <= 0 or posy >= winh - 1
+            if hit_edge_h:
+                posx = self.winw / 2
+                posy = self.winh / 2
 
-        if hit_edge_v:
-            addy *= -1
+            if hit_paddle:
+                addx *= -1
 
-        if hit_edge_h:
-            posx = winw / 2
-            posy = winh / 2
+            p1_y = move_paddle(self.offset, p1_y)
+            p2_y = move_paddle(self.winw - self.offset, p2_y)
 
-        if hit_paddle:
-            addx *= -1
-
-        p1_y = move_paddle(offset, p1_y)
-        p2_y = move_paddle(winw - offset, p2_y)
-
-        frame = b''
-        for y in range(0, winh):
-            for x in range(0, winw):
-                frame += get_pixel(x, y)
-        stdout.buffer.write(frame)
-        sleep(frame_delay)
+            frame = b''
+            for y in range(0, self.winh):
+                for x in range(0, self.winw):
+                    frame += get_pixel(x, y)
+            stdout.buffer.write(frame)
+            sleep(self.frame_delay)

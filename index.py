@@ -9,33 +9,28 @@ import time
 from os import path
 from time import sleep
 from glob import glob
-from multiprocessing import Process, Manager
 
 
 class LichtKrant:
 
     def __init__(self, args):
         self.args = args
-        self.manager = Manager()
-        self.module_context = self.manager.dict()
-
         mqtt.connect(not args.offline)
+        self.modules = self.read_modules(self.args.state_dir + '**/**/*.mod.py')
 
     def import_module(self, loc):
         name = path.basename(loc).replace('.mod.py', '', -1)
         spec = importlib.util.spec_from_file_location(name, loc)
-
         module = spec.loader.load_module()
-        if hasattr(module, 'init'):
-            context = module.init()
-            self.module_context[module.name] = context
         return module
 
-    def read_dir(self, location):
+    def read_modules(self, location):
         # loading state modules
         return [self.import_module(file) for file in glob(location, recursive=self.args.recursive)]
 
-    def get_state(self, states, space_state):
+    def get_state(self, space_state):
+        # States need to be re-created, since a thread can only be start()ed once
+        states = [module.State() for module in self.modules]
         # getting highest indexed state
         if self.args.module is not None:
             try:
@@ -44,15 +39,7 @@ class LichtKrant:
                 raise Exception('The module passed does not exist.')
 
         # filter states
-        filtered_states = []
-        for state in states:
-            context = self.module_context[state.name] if state.name in self.module_context else None
-            if context is not None:
-                active = state.check(space_state, context)
-            else:
-                active = state.check(space_state)
-            if active:
-                filtered_states.append(state)
+        filtered_states = [state for state in states if state.check(space_state)]
 
         # return random with highest index
         random.shuffle(filtered_states)
@@ -68,37 +55,28 @@ class LichtKrant:
             print(f"state: {state.name}")
             return None
 
-        states = mqtt.get_states()
-        context = self.module_context[state.name] if state.name in self.module_context else None
-        if context is not None:
-            process = Process(target=state.run, args=(states, context))
-        else:
-            process = Process(target=state.run, args=(states,))
-        process.start()
-
-        return process
+        state.start()
+        return state
 
     def state_loop(self):
-        # read all modules
-        state_modules = self.read_dir(self.args.state_dir + '**/**/*.mod.py')
-
         # the state update loop
         current_state = None
-        current_process = None
+        current_thread = None
 
         while True:
             space_state = mqtt.get_states()
-            new_state = self.get_state(state_modules, space_state)
+            new_state = self.get_state(space_state)
 
             if new_state != current_state:
                 current_state = new_state
 
-                if current_process is not None:
-                    current_process.terminate()
+                if current_thread is not None:
+                    current_thread.kill()
+                    current_thread.join()
                     sleep(1)  # sleep to reset outlining
 
                 if current_state is not None:
-                    current_process = self.run_state(current_state)
+                    current_thread = self.run_state(current_state)
 
             # delay or force update if necessary
             end_time = time.time() + new_state.delay
@@ -107,7 +85,7 @@ class LichtKrant:
                 if time.time() >= end_time:
                     break
 
-                diff_state = self.get_state(state_modules, space_state)
+                diff_state = self.get_state(space_state)
 
                 if diff_state.index > new_state.index:
                     break
