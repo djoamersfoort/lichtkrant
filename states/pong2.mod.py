@@ -9,7 +9,7 @@ from states.base import BaseState
 class State(BaseState):
 
     # module information
-    name = "interactivepong"
+    name = "pong2"
     index = 7
     delay = 30
 

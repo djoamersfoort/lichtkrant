@@ -16,30 +16,47 @@ class LichtKrant:
     def __init__(self, args):
         self.args = args
         mqtt.connect(not args.offline)
-        self.modules = self.read_modules(self.args.state_dir + '**/**/*.mod.py')
+        self.modules = None
+        self.states = {}
 
     def import_module(self, loc):
         name = path.basename(loc).replace('.mod.py', '', -1)
         spec = importlib.util.spec_from_file_location(name, loc)
         module = spec.loader.load_module()
-        return module
+        return module, name
 
     def read_modules(self, location):
         # loading state modules
         return [self.import_module(file) for file in glob(location, recursive=self.args.recursive)]
 
+    def read_states(self):
+        if self.modules is None:
+            self.modules = self.read_modules(self.args.state_dir + '**/**/*.mod.py')
+
+        for module, name in self.modules:
+            # Re-create any missing states (killed threads)
+            if name not in self.states:
+                state = module.State()
+                state.name = name
+                self.states[name] = state
+
+    def kill_state(self, state):
+        state.kill()
+        state.join()
+        # Remove the state, because Thread's can only be start()ed once
+        del self.states[state.name]
+
     def get_state(self, space_state):
-        # States need to be re-created, since a thread can only be start()ed once
-        states = [module.State() for module in self.modules]
+        self.read_states()
         # getting highest indexed state
         if self.args.module is not None:
             try:
-                return [s for s in states if s.name == args.module][0]
+                return [state for name, state in self.states.items() if name == args.module][0]
             except IndexError:
                 raise Exception('The module passed does not exist.')
 
         # filter states
-        filtered_states = [state for state in states if state.check(space_state)]
+        filtered_states = [state for name, state in self.states.items() if state.check(space_state)]
 
         # return random with highest index
         random.shuffle(filtered_states)
@@ -71,8 +88,7 @@ class LichtKrant:
                 current_state = new_state
 
                 if current_thread is not None:
-                    current_thread.kill()
-                    current_thread.join()
+                    self.kill_state(current_thread)
                     sleep(1)  # sleep to reset outlining
 
                 if current_state is not None:
