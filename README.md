@@ -52,33 +52,34 @@ An example state file:
 ```python
 import sys
 from time import sleep
+from states.base import BaseState
 
-# give the state a name
-# this name should be unique!
-name = "example"
+# The state class must be called 'State' and extend BaseState for things to work
+class State(BaseState):
+    # give the state a name
+    # this name should be unique!
+    name = "example"
 
-# the state with the highest index is shown
-# if multiple states have the same index it will be randomly selected
-index = 0
+    # the state with the highest index is shown
+    # if multiple states have the same index it will be randomly selected
+    index = 0
 
-# delay in seconds to wait until the next update
-delay = 60
+    # delay in seconds to wait until the next update
+    delay = 60
 
+    # this function decides if the module will be shown
+    # the check function must return a boolean
+    # the spacestate is available as the first argument
+    def check(self, states):
+        return states['djo'] is False
 
-# this function decides if the module will be shown
-# the check function must return a boolean
-# the spacestate is available as the first argument
-def check(states):
-    return states['djo'] is False
+    # a function that is called when running the module
+    # in this case it just fills the screen with white
+    def run(self):
+        while not self.killed:
+            sys.stdout.buffer.write(bytes([0xFF] * 3072))
 
-
-# a function that is called when running the module
-# in this case it just fills the screen with white
-def run():
-    while True:
-        sys.stdout.buffer.write(bytes([0xFF] * 3072))
-
-    sleep(0.05)
+        sleep(1)
 ```
 
 By default, all state files are included, even in subdirectories. If you don't want this, set the flag `-r, --recursive` to false.
