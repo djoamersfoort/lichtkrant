@@ -8,7 +8,7 @@ class State(BaseState):
 
     # module information
     name = "pauze"
-    index = 1
+    index = 10
     delay = 30
 
     # module check function

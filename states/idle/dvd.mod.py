@@ -8,7 +8,7 @@ class State(BaseState):
     # module information
     name = "dvd"
     index = 0
-    delay = 60
+    delay = 45
 
     # check function
     def check(self, state):
