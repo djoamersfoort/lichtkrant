@@ -1,13 +1,15 @@
+import random
+
 from PIL import Image
 from time import sleep
-from sys import stdout
 from states.base import BaseState
+import glob
 
 
 class State(BaseState):
 
     # module information
-    name = "nyan"
+    name = "gifs"
     index = 0
     delay = 12
 
@@ -33,7 +35,9 @@ class State(BaseState):
 
     # module runner
     def run(self):
-        sequence = self.get_image('static/nyan.gif')
+        gifs = glob.glob('static/*.gif')
+        random.shuffle(gifs)
+        sequence = self.get_image(gifs[0])
 
         while not self.killed:
             for image in sequence:
