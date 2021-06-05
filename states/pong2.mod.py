@@ -1,50 +1,110 @@
-from sys import stdout
-from time import sleep
-import random
 import threading
 import socket
-from states.base import BaseState
+from random import choice
 import math
 
+from states.base import BaseState
+
+
+def number(num):
+    numbers = {
+        "0": [[1, 1, 1], [1, 0, 1], [1, 0, 1], [1, 0, 1], [1, 1, 1]],
+        "1": [[0, 0, 1], [0, 0, 1], [0, 0, 1], [0, 0, 1], [0, 0, 1]],
+        "2": [[1, 1, 1], [0, 0, 1], [1, 1, 1], [1, 0, 0], [1, 1, 1]],
+        "3": [[1, 1, 1], [0, 0, 1], [1, 1, 1], [0, 0, 1], [1, 1, 1]],
+        "4": [[1, 0, 1], [1, 0, 1], [1, 1, 1], [0, 0, 1], [0, 0, 1]],
+        "5": [[1, 1, 1], [1, 0, 0], [1, 1, 1], [0, 0, 1], [1, 1, 1]],
+        "6": [[1, 1, 1], [1, 0, 0], [1, 1, 1], [1, 0, 1], [1, 1, 1]],
+        "7": [[1, 1, 1], [0, 0, 1], [0, 0, 1], [0, 0, 1], [0, 0, 1]],
+        "8": [[1, 1, 1], [1, 0, 1], [1, 1, 1], [1, 0, 1], [1, 1, 1]],
+        "9": [[1, 1, 1], [1, 0, 1], [1, 1, 1], [0, 0, 1], [1, 1, 1]]
+    }
+    return numbers.get(str(num), [])
+
+
+def flatten(s):
+    if s == []:
+        return s
+    if isinstance(s[0], list):
+        return flatten(s[0]) + flatten(s[1:])
+    return s[:1] + flatten(s[1:])
+
+
 class Game:
-    def __init__(self, width, height):
-        left_position = {
-            "x": 6,
-            "y": (height / 2) - 4
-        }
-        right_position = {
-            "x": width - 6,
-            "y": (height / 2) - 4
-        }
-        self.p1 = Player(**left_position)
-        self.p2 = Player(**right_position)
-        self.ball = Ball(width / 2, height / 2)
+    def __init__(self, dims):
+        self.dims = dims
+        h = self.dims["height"]
+        w = self.dims["width"]
+        self.p1 = Player(x=1, y=int((h / 2) - Player.height / 2), limit=h - 1)
+        self.p2 = Player(x=w - 2, y=int((h / 2) - Player.height / 2), limit=h - 1)
+        self.ball = Ball(self.dims)
+        # TODO wait with moving the ball till there are two players
+
+    def update(self):
+        self.p1.move()
+        self.p2.move()
+        self.ball.move()
+        # update scoring
+        if self.ball.x < 0:
+            self.p2.score += 1
+            self.ball.reset("left")
+        elif round(self.ball.x) == self.dims["width"] - 1:
+            self.p1.score += 1
+            self.ball.reset("right")
+        # check winner
+        # TODO check for 11 points and 2 points diff
+        # bounce on the players
+        if round(self.ball.x) == 1:
+            # TODO bounce back and increase velocity
+            pass
+        elif round(self.ball.x) == self.dims['width'] - 2:
+            # TODO bounce back and increase velocity
+            pass
+
 
 class Player:
-    def __init__(self, x, y):
+    height = 6
+    def __init__(self, x, y, limit):
         self.x = x
         self.y = y
-        self.height = 8
+        self.score = 0
+        self.limit = limit
         self.ishuman = False
         self.movement = 0
 
     def move(self):
         self.y += self.movement
+        self.y = min(max(0, self.y), self.limit - self.height + 1)
+
 
 class Ball:
-    def __init__(self, startx, starty):
-        self.direction = 135
+    def __init__(self, bounds):
         self.velocity = 1
-        self.x = startx
-        self.y = starty
+        self.bounds = bounds
+        self.reset()
 
     def move(self):
-        self.x += math.cos(self.direction) * self.velocity
-        self.y += math.sin(self.direction) * self.velocity
+        self.x += math.sin(math.radians(self.direction)) * self.velocity
+        self.y += math.cos(math.radians(self.direction)) * self.velocity
+        if round(self.y) <= 0:
+            if self.direction < 90:
+                self.direction -= 90
+            elif self.direction > 90:
+                self.direction += 90
+        if round(self.y) >= self.bounds['height'] - 1:
+            if self.direction < 180:
+                self.direction -= 90
+            elif self.direction > 180:
+                self.direction -= 90
+
+    def reset(self, direction=None):
+        directions = {"left": [45, 135], "right": [225, 315]}
+        self.direction = choice(directions.get(direction, [45, 135, 225, 315]))
+        self.x = self.bounds["width"] / 2
+        self.y = self.bounds["height"] / 2
+
 
 class State(BaseState):
-
-    # module information
     name = "pong2"
     index = 7
     delay = 30
@@ -52,221 +112,57 @@ class State(BaseState):
 
     winw = 96
     winh = 32
-    offset = 6
-    height = 8
 
-    color = bytes([255, 255, 255])
-    blue = bytes([0, 0, 255])
-    red = bytes([255, 0, 0])
-    green = bytes([0, 255, 0])
-    frame_delay = 1 / 30
+    white = [255, 255, 255]
+    blue = [0, 0, 255]
+    red = [255, 0, 0]
+    green = [0, 255, 0]
 
     def __init__(self):
         super().__init__()
         threading.Thread(target=self.receive).start()
 
-    # check function
-    def check(self, state):
+    def check(self, _state):
         return self.game
 
-    # module runner
     def run(self):
-        p1_y = 16
-        p2_y = 16
-        p1_points = 0
-        p2_points = 0
-
-        posx = self.winw / 2
-        posy = self.winh / 2
-        addx = 1
-        addy = 1
-
-        def number(xstart, ystart, number, color):
-            if x == xstart and y == ystart:
-                if number == 0 or number == 2 or number == 3 or number == 4 or number == 5 or number == 6:
-                    return color
-            if x == xstart + 1 and y == ystart:
-                if number == 0 or number == 2 or number == 3 or number == 5 or number == 6:
-                    return color
-            if x == xstart + 2 and y == ystart:
-                if number == 0 or number == 1 or number == 2 or number == 3 or number == 4 or number == 5 or number == 6:
-                    return color
-            if x == xstart and y == ystart + 1:
-                if number == 0 or number == 4 or number == 5 or number == 6:
-                    return color
-            if x == xstart + 2 and y == ystart + 1:
-                if number == 0 or number == 1 or number == 2 or number == 3 or number == 4:
-                    return color
-            if x == xstart and y == ystart + 2:
-                if number == 0 or number == 2 or number == 3 or number == 4 or number == 5 or number == 6:
-                    return color
-            if x == xstart + 1 and y == ystart + 2:
-                if number == 2 or number == 3 or number == 4 or number == 5 or number == 6:
-                    return color
-            if x == xstart + 2 and y == ystart + 2:
-                if number == 0 or number == 1 or number == 2 or number == 3 or number == 4 or number == 5 or number == 6:
-                    return color
-            if x == xstart and y == ystart + 3:
-                if number == 0 or number == 2 or number == 6:
-                    return color
-            if x == xstart + 2 and y == ystart + 3:
-                if number == 0 or number == 1 or number == 3 or number == 4 or number == 5 or number == 6:
-                    return color
-            if x == xstart and y == ystart + 4:
-                if number == 0 or number == 2 or number == 3 or number == 5 or number == 6:
-                    return color
-            if x == xstart + 1 and y == ystart + 4:
-                if number == 0 or number == 2 or number == 3 or number == 5 or number == 6:
-                    return color
-            if x == xstart + 2 and y == ystart + 4:
-                if number == 0 or number == 1 or number == 2 or number == 3 or number == 4 or number == 5 or number == 6:
-                    return color
-            return bytes([0, 0, 0])
-
-        # variables
-        def get_pixel(x, y, p1_win, p2_win):
-            if x == posx and y == posy:
-                return self.color
-
-            if x == self.offset and (p1_y + self.height > y > p1_y - self.height):
-                if p1_win:
-                    return self.green
-                else:
-                    if self.context["p1_isplaying"]:
-                        return self.blue
-                    else:
-                        return self.color
-
-            if x == self.winw - self.offset and (p2_y + self.height > y > p2_y - self.height):
-                if p2_win:
-                    return self.green
-                else:
-                    if self.context["p2_isplaying"]:
-                        return self.blue
-                    else:
-                        return self.color
-
-            if x == self.winw / 2 and y % 2 == 0:
-                return self.color
-
-            if x == self.winw / 2 and y % 2 == 0:
-                return self.color
-
-            if x == 0:
-                return self.red
-
-            if x == 95:
-                return self.red
-
-            if 49 < x < 53 and 25 < y < 31:
-                if p2_win:
-                    return number(50, 26, p2_points, self.green)
-                else:
-                    return number(50, 26, p2_points, self.color)
-
-            if 47 > x > 43 and 25 < y < 31:
-                if p1_win:
-                    return number(44, 26, p1_points, self.green)
-                else:
-                    return number(44, 26, p1_points, self.color)
-
-            return bytes([0, 0, 0])
-
-        def move_paddle(px, py):
-            up = posy > py
-
-            if abs(px - posx) > self.winw / 2:
-                up = not up
-
-            if random.randint(0, 10) < 8:
-                if up and py + self.offset < self.winh - 3:
-                    py += 1
-                elif not up and py - self.offset > 2:
-                    py -= 1
-
-            return py
-
-        def check_hit(px, py):
-            return posx == px and posy - self.height < py < posy + self.height
-
-        # 'game' loop
         while not self.killed:
             if self.game:
                 self.game.update()
-            p1_win = False
-            p2_win = False
-            posx += addx
-            posy += addy
-
-            hit_paddle = check_hit(self.offset, p1_y) or check_hit(self.winw - self.offset, p2_y)
-            hit_edge_h = posx <= 0 or posx >= self.winw - 1
-            hit_edge_v = posy <= 0 or posy >= self.winh - 1
-
-            if hit_edge_v:
-                addy *= -1
-
-            if hit_edge_h:
-                if posx <= 0:
-                    p2_points += 1
-                    if p2_points == 7:
-                        p2_points = 0
-                        p1_points = 0
-                        p2_win = True
-                else:
-                    p1_points += 1
-                    if p1_points == 7:
-                        p2_points = 0
-                        p1_points = 0
-                        p1_win = True
-                posx = self.winw / 2
-                posy = self.winh / 2
-
-            if hit_paddle:
-                addx *= -1
-
-            if self.context["p1_isplaying"]:
-                if self.context["p1_movement"] == 1:
-                    p1_y += 1
-                elif self.context["p1_movement"] == -1:
-                    p1_y -= 1
-                if p1_y < 8:
-                    p1_y = 8
-                if p1_y > 23:
-                    p1_y = 23
-            else:
-                p1_y = move_paddle(self.offset, p1_y)
-
-            if self.context["p2_isplaying"]:
-                if self.context["p2_movement"] == 1:
-                    p2_y += 1
-                elif self.context["p2_movement"] == -1:
-                    p2_y -= 1
-                if p2_y < 8:
-                    p2_y = 8
-                if p2_y > 23:
-                    p2_y = 23
-            else:
-                p2_y = move_paddle(self.winw - self.offset, p2_y)
-
-            frame = b''
-            for y in range(0, self.winh):
-                for x in range(0, self.winw):
-                    frame += get_pixel(x, y, p1_win, p2_win)
-            stdout.buffer.write(frame)
-
-            if p1_win or p2_win:
-                frame = b''
+                # create a black empty set of pixels
+                pixels = []
+                for _ in range(self.winh):
+                    pixels.append([])
+                    for _ in range(self.winw):
+                        pixels[-1].append([0, 0, 0])
+                # draw all elements
+                for player in [self.game.p1, self.game.p2]:
+                    for y in range(player.y, player.y + player.height):
+                        if player.ishuman:
+                            pixels[y][player.x] = self.blue
+                        else:
+                            pixels[y][player.x] = self.white
+                ball = self.game.ball
+                ball_x = min(max(0, ball.x), self.game.dims['width'])
+                ball_y = min(max(0, ball.y), self.game.dims['height'] - 1)
+                pixels[round(ball_y)][round(ball_x)] = self.white
                 for y in range(0, self.winh):
-                    for x in range(0, self.winw):
-                        frame += get_pixel(x, y, p1_win, p2_win)
+                    if y % 2 == 0:
+                        pixels[y][int(self.winw / 2)] = self.white
+                score_left_x = round(self.game.dims['width'] / 4) - 1
+                for y, row in enumerate(number(self.game.p1.score)):
+                    for x, pixel in enumerate(row):
+                        if pixel:
+                            pixels[y + 1][score_left_x + x] = self.white
+                score_right_x = round(self.game.dims['width'] / 4 * 3) - 1
+                for y, row in enumerate(number(self.game.p2.score)):
+                    for x, pixel in enumerate(row):
+                        if pixel:
+                            pixels[y + 1][score_right_x + x] = self.white
+                # flatten, convert and write buffer to display
+                self.output_frame(bytes(flatten(pixels)))
 
-                for i in range(150):
-                    stdout.buffer.write(frame)
-                    sleep(self.frame_delay)
-
-            sleep(self.frame_delay)
-
-    def receive(self, context):
+    def receive(self):
         HOST = '0.0.0.0'  # Standard loopback interface address (localhost)
         PORT = 9999  # Port to listen on (non-privileged ports are > 1023)
 
@@ -277,22 +173,25 @@ class State(BaseState):
             s.listen()
             while True:
                 conn, addr = s.accept()
-                threading.Thread(target=self.handleclient, args=(conn, addr)).start()
+                threading.Thread(target=self.handleclient,
+                                 args=(conn, addr)).start()
 
     def handleclient(self, conn, addr):
         player = None
         while not self.killed:
             try:
                 data = conn.recv(1)
-            except:
+            except Exception:
                 if player == '1':
                     self.game.p1.ishuman = False
                 if player == '2':
                     self.game.p2.ishuman = False
                 break
-            if data.decode() != "":
+            if data.decode() == "":
+                msg = "redUnknown"
+            else:
                 if not self.game:
-                    self.game = Game(self.winw, self.winh)
+                    self.game = Game({"width": self.winw, "height": self.winh})
 
                 if player is None:
                     if data.decode() == '1' or data.decode() == '2':
@@ -325,16 +224,14 @@ class State(BaseState):
                         if player == '1':
                             self.game.p1.movement = 1
                         else:
-                            self.game.p2_movement = 1
+                            self.game.p2.movement = 1
                         msg = 'greendown'
                     else:
                         msg = 'redUnknown'
-            else:
-                msg = 'redUnknown'
 
             try:
                 conn.send(msg.encode())
-            except:
+            except Exception:
                 if player == '1':
                     self.game.p1.ishuman = False
                 if player == '2':
