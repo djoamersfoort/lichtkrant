@@ -1,6 +1,5 @@
 from PIL import Image, ImageDraw, ImageFont
 from time import sleep
-from sys import stdout
 from datetime import datetime, timedelta
 from states.base import BaseState
 import requests
@@ -78,5 +77,5 @@ class State(BaseState):
         image = self.get_image(data)
 
         while not self.killed:
-            stdout.buffer.write(image.tobytes())
+            self.output_image(image)
             sleep(1)

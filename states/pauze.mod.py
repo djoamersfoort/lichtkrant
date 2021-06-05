@@ -1,4 +1,3 @@
-import sys
 from time import sleep
 from datetime import datetime, timedelta
 from PIL import Image, ImageDraw, ImageFont
@@ -39,5 +38,5 @@ class State(BaseState):
             font = ImageFont.truetype(font_path, size=12)
             draw.text((48, 29), date_text, fill="yellow", anchor="mb", font=font)
 
-            sys.stdout.buffer.write(image.tobytes())
+            self.output_image(image)
             sleep(0.5)

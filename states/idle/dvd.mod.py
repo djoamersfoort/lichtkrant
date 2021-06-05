@@ -1,5 +1,4 @@
 from time import sleep
-from sys import stdout
 from random import randint
 from states.base import BaseState
 
@@ -77,9 +76,9 @@ class State(BaseState):
 
             if horizontal_hit and vertical_hit:
                 for _i in range(0, 10):
-                    stdout.buffer.write(color * 3072)
+                    self.output_frame(color * 3072)
                     sleep(0.15)
-                    stdout.buffer.write(background * 3072)
+                    self.output_frame(background * 3072)
                     sleep(0.15)
 
             if horizontal_hit:
@@ -95,5 +94,5 @@ class State(BaseState):
                     frame += get_pixel(x, y)
 
             for _i in range(2):
-                stdout.buffer.write(frame)
+                self.output_frame(frame)
                 sleep(self.frame_delay)

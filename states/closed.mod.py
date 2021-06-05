@@ -1,5 +1,4 @@
 import os
-import sys
 from time import sleep
 from PIL import Image, ImageDraw, ImageFont
 from states.base import BaseState
@@ -32,5 +31,5 @@ class State(BaseState):
         draw.text((48, 16), text, fill="red", anchor="mm", font=font)
 
         while not self.killed:
-            sys.stdout.buffer.write(image.tobytes())
+            self.output_image(image)
             sleep(1)

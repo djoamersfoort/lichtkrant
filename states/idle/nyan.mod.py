@@ -36,6 +36,6 @@ class State(BaseState):
         sequence = self.get_image('static/nyan.gif')
 
         while not self.killed:
-            for frame in sequence:
-                stdout.buffer.write(frame.tobytes())
+            for image in sequence:
+                self.output_image(image)
                 sleep(0.05)

@@ -1,4 +1,3 @@
-import sys
 from time import sleep
 from PIL import Image, ImageDraw, ImageFont
 from states.base import BaseState
@@ -30,5 +29,5 @@ class State(BaseState):
             font = ImageFont.truetype(font_path, size=19)
             draw.text((48, 16), f"{temp} °C", fill="blue", anchor="mm", font=font)
 
-            sys.stdout.buffer.write(image.tobytes())
+            self.output_image(image)
             sleep(0.5)

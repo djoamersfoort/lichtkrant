@@ -1,4 +1,3 @@
-from sys import stdout
 from time import sleep
 import random
 import threading
@@ -227,7 +226,7 @@ class State(BaseState):
             for y in range(0, self.winh):
                 for x in range(0, self.winw):
                     frame += get_pixel(x, y, p1_win, p2_win)
-            stdout.buffer.write(frame)
+            self.output_frame(frame)
 
             if p1_win or p2_win:
                 frame = b''
@@ -236,7 +235,7 @@ class State(BaseState):
                         frame += get_pixel(x, y, p1_win, p2_win)
 
                 for i in range(150):
-                    stdout.buffer.write(frame)
+                    self.output_frame(frame)
                     sleep(self.frame_delay)
 
             sleep(self.frame_delay)

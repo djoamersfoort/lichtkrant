@@ -1,4 +1,3 @@
-from sys import stdout
 from time import sleep
 from states.base import BaseState
 import random
@@ -92,5 +91,5 @@ class State(BaseState):
             for y in range(0, self.winh):
                 for x in range(0, self.winw):
                     frame += get_pixel(x, y)
-            stdout.buffer.write(frame)
+            self.output_frame(frame)
             sleep(self.frame_delay)
