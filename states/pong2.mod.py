@@ -1,9 +1,46 @@
+from sys import stdout
 from time import sleep
 import random
 import threading
 import socket
 from states.base import BaseState
+import math
 
+class Game:
+    def __init__(self, width, height):
+        left_position = {
+            "x": 6,
+            "y": (height / 2) - 4
+        }
+        right_position = {
+            "x": width - 6,
+            "y": (height / 2) - 4
+        }
+        self.p1 = Player(**left_position)
+        self.p2 = Player(**right_position)
+        self.ball = Ball(width / 2, height / 2)
+
+class Player:
+    def __init__(self, x, y):
+        self.x = x
+        self.y = y
+        self.height = 8
+        self.ishuman = False
+        self.movement = 0
+
+    def move(self):
+        self.y += self.movement
+
+class Ball:
+    def __init__(self, startx, starty):
+        self.direction = 135
+        self.velocity = 1
+        self.x = startx
+        self.y = starty
+
+    def move(self):
+        self.x += math.cos(self.direction) * self.velocity
+        self.y += math.sin(self.direction) * self.velocity
 
 class State(BaseState):
 
@@ -11,6 +48,7 @@ class State(BaseState):
     name = "pong2"
     index = 7
     delay = 30
+    game = None
 
     winw = 96
     winh = 32
@@ -25,23 +63,11 @@ class State(BaseState):
 
     def __init__(self):
         super().__init__()
-        self.context = {
-            "p1_isplaying": False,
-            "p2_isplaying": False,
-            "p1_movement": 0,
-            "p2_movement": 0,
-            "killed": False
-        }
-        threading.Thread(target=self.receive, args=(self.context,)).start()
-
-    def kill(self):
-        self.context["killed"] = True
-        super().kill()
+        threading.Thread(target=self.receive).start()
 
     # check function
     def check(self, state):
-        if self.context["p1_isplaying"] or self.context["p2_isplaying"]:
-            return True
+        return self.game
 
     # module runner
     def run(self):
@@ -165,7 +191,8 @@ class State(BaseState):
 
         # 'game' loop
         while not self.killed:
-
+            if self.game:
+                self.game.update()
             p1_win = False
             p2_win = False
             posx += addx
@@ -195,7 +222,6 @@ class State(BaseState):
                 posy = self.winh / 2
 
             if hit_paddle:
-                addy *= -1
                 addx *= -1
 
             if self.context["p1_isplaying"]:
@@ -226,7 +252,7 @@ class State(BaseState):
             for y in range(0, self.winh):
                 for x in range(0, self.winw):
                     frame += get_pixel(x, y, p1_win, p2_win)
-            self.output_frame(frame)
+            stdout.buffer.write(frame)
 
             if p1_win or p2_win:
                 frame = b''
@@ -235,7 +261,7 @@ class State(BaseState):
                         frame += get_pixel(x, y, p1_win, p2_win)
 
                 for i in range(150):
-                    self.output_frame(frame)
+                    stdout.buffer.write(frame)
                     sleep(self.frame_delay)
 
             sleep(self.frame_delay)
@@ -249,36 +275,39 @@ class State(BaseState):
             s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
             s.bind((HOST, PORT))
             s.listen()
-            while not context['killed']:
+            while True:
                 conn, addr = s.accept()
-                threading.Thread(target=self.handleclient, args=(conn, addr, context)).start()
+                threading.Thread(target=self.handleclient, args=(conn, addr)).start()
 
-    def handleclient(self, conn, addr, context):
+    def handleclient(self, conn, addr):
         player = None
-        while not context['killed']:
+        while not self.killed:
             try:
                 data = conn.recv(1)
             except:
                 if player == '1':
-                    context["p1_isplaying"] = False
-                else:
-                    context["p2_isplaying"] = False
+                    self.game.p1.ishuman = False
+                if player == '2':
+                    self.game.p2.ishuman = False
                 break
             if data.decode() != "":
+                if not self.game:
+                    self.game = Game(self.winw, self.winh)
+
                 if player is None:
                     if data.decode() == '1' or data.decode() == '2':
                         if data.decode() == '1':
-                            if context["p1_isplaying"]:
+                            if self.game.p1.ishuman:
                                 msg = "redSomeone is already player 1"
                             else:
-                                context["p1_isplaying"] = True
+                                self.game.p1.ishuman = True
                                 msg = "yellowYou are player 1"
                                 player = "1"
                         if data.decode() == '2':
-                            if context["p2_isplaying"]:
+                            if self.game.p2.ishuman:
                                 msg = "redSomeone is already player 2"
                             else:
-                                context["p2_isplaying"] = True
+                                self.game.p2.ishuman = True
                                 msg = "yellowYou are player 2"
                                 player = "2"
                     else:
@@ -288,15 +317,15 @@ class State(BaseState):
                     if data.decode() == 'w':
                         msg = "greenup"
                         if player == '1':
-                            context["p1_movement"] = -1
+                            self.game.p1.movement = -1
                         else:
-                            context["p2_movement"] = -1
+                            self.game.p2.movement = -1
 
                     elif data.decode() == 's':
                         if player == '1':
-                            context["p1_movement"] = 1
+                            self.game.p1.movement = 1
                         else:
-                            context["p2_movement"] = 1
+                            self.game.p2_movement = 1
                         msg = 'greendown'
                     else:
                         msg = 'redUnknown'
@@ -307,7 +336,9 @@ class State(BaseState):
                 conn.send(msg.encode())
             except:
                 if player == '1':
-                    context["p1_isplaying"] = False
-                else:
-                    context["p2_isplaying"] = False
+                    self.game.p1.ishuman = False
+                if player == '2':
+                    self.game.p2.ishuman = False
+                if not self.game.p1.ishuman and not self.game.p2.ishuman:
+                    self.game = None
                 break
