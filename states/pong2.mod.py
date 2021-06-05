@@ -43,6 +43,7 @@ class Game:
         self.p1 = Player(x=1, limit=h)
         self.p2 = Player(x=w - 2, limit=h)
         self.ball = Ball(self.dims)
+        self.start()
 
     def start(self):
         self.ball.reset()
@@ -50,7 +51,7 @@ class Game:
         self.p2.reset()
 
     def update(self):
-        if not self.p1.ishuman and not self.p2.ishuman:
+        if not self.p1.ishuman or not self.p2.ishuman:
             return
         if self.p1.has_won or self.p2.has_won:
             sleep(5)
@@ -191,20 +192,16 @@ class State(BaseState):
                 sleep(1 / 30)
 
     def receive(self):
-        HOST = "0.0.0.0"  # Standard loopback interface address (localhost)
-        PORT = 9999  # Port to listen on (non-privileged ports are > 1023)
-
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
             s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
             s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
-            s.bind((HOST, PORT))
+            s.bind(("0.0.0.0", 9999))
             s.listen()
             while True:
                 conn, addr = s.accept()
-                threading.Thread(target=self.handleclient,
-                                 args=(conn, addr)).start()
+                threading.Thread(target=self.msg, args=(conn, addr)).start()
 
-    def handleclient(self, conn, addr):
+    def msg(self, conn, addr):
         player = None
         while not self.killed:
             try:
