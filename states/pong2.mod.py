@@ -126,10 +126,10 @@ class Ball:
             self.direction = 180 - self.direction
             self.y = min(max(self.y, 0.01), self.bounds["height"] - 1.01)
 
-    def reset(self, direction=None):
+    def reset(self, side=None):
         self.velocity = 1
-        directions = {"right": [45, 135], "left": [225, 315]}
-        self.direction = choice(directions.get(direction, [45, 135, 225, 315]))
+        dirs = {"right": list(range(45, 135)), "left": list(range(225, 315))}
+        self.direction = choice(dirs.get(side, dirs["left"] + dirs["right"]))
         self.x = self.bounds["width"] / 2
         self.y = self.bounds["height"] / 2
 
@@ -219,7 +219,7 @@ class State(BaseState):
                     # because empty strings are not enough or even send at all.
                     # tldr: I kind of hate sockets now >.<
                     conn.send(b"_")
-                except Exception as e:
+                except Exception:
                     if player == "1":
                         self.game.p1.ishuman = False
                         self.game.reset()
