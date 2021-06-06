@@ -43,9 +43,9 @@ class Game:
         self.p1 = Player(x=1, limit=h)
         self.p2 = Player(x=w - 2, limit=h)
         self.ball = Ball(self.dims)
-        self.start()
+        self.reset()
 
-    def start(self):
+    def reset(self):
         self.ball.reset()
         self.p1.reset()
         self.p2.reset()
@@ -55,33 +55,32 @@ class Game:
             return
         if self.p1.has_won or self.p2.has_won:
             sleep(5)
-            self.start()
+            self.reset()
             return
         self.p1.move()
         self.p2.move()
         self.ball.move()
-        # bounce on the players
-        if round(self.ball.x) == 1:
+        # bounce on the players OR assign score and serve again
+        if round(self.ball.x) <= 1:
             bounce_pos = self.ball.y - self.p1.y
             if bounce_pos >= 0 and bounce_pos <= self.p1.height:
                 steps = self.p1.height + 2
-                self.ball.direction = (bounce_pos + 1) * (180 / steps)
+                self.ball.direction = 180 - (bounce_pos + 1) * (180 / steps)
                 self.ball.velocity *= 1.1
                 return
-        elif round(self.ball.x) == self.dims["width"] - 2:
+            else:
+                self.p2.score += 1
+                self.ball.reset("left")
+        elif round(self.ball.x) >= self.dims["width"] - 2:
             bounce_pos = self.ball.y - self.p2.y
             if bounce_pos >= 0 and bounce_pos <= self.p2.height:
                 steps = self.p2.height + 2
-                self.ball.direction = 360 - ((bounce_pos + 1) * (180 / steps))
+                self.ball.direction = 180 + ((bounce_pos + 1) * (180 / steps))
                 self.ball.velocity *= 1.1
                 return
-        # assign points, skipped if the ball was bounced above
-        if self.ball.x < 0:
-            self.p2.score += 1
-            self.ball.reset("left")
-        elif round(self.ball.x) >= self.dims["width"] - 1:
-            self.p1.score += 1
-            self.ball.reset("right")
+            else:
+                self.p1.score += 1
+                self.ball.reset("right")
         # check winner
         if self.p1.score >= 11 and self.p1.score - self.p2.score >= 2:
             self.p1.has_won = True
@@ -125,10 +124,11 @@ class Ball:
         self.y += math.cos(math.radians(self.direction)) * self.velocity
         if round(self.y) <= 0 or round(self.y) >= self.bounds["height"] - 1:
             self.direction = 180 - self.direction
+            self.y = min(max(self.y, 0.01), self.bounds["height"] - 1.01)
 
     def reset(self, direction=None):
         self.velocity = 1
-        directions = {"left": [45, 135], "right": [225, 315]}
+        directions = {"right": [45, 135], "left": [225, 315]}
         self.direction = choice(directions.get(direction, [45, 135, 225, 315]))
         self.x = self.bounds["width"] / 2
         self.y = self.bounds["height"] / 2
@@ -161,13 +161,13 @@ class State(BaseState):
                     for _ in range(self.winw):
                         pixels[-1].append([0, 0, 0])
                 # draw all elements
-                for player in [self.game.p1, self.game.p2]:
-                    for y in range(player.y, player.y + player.height):
-                        pixels[y][player.x] = player.color()
                 ball = self.game.ball
                 ball_x = min(max(0, ball.x), self.game.dims["width"] - 1)
                 ball_y = min(max(0, ball.y), self.game.dims["height"] - 1)
                 pixels[round(ball_y)][round(ball_x)] = WHITE
+                for player in [self.game.p1, self.game.p2]:
+                    for y in range(player.y, player.y + player.height):
+                        pixels[y][player.x] = player.color()
                 for y in range(0, self.winh):
                     if y % 2 == 0:
                         pixels[y][int(self.winw / 2)] = WHITE
@@ -204,67 +204,45 @@ class State(BaseState):
     def msg(self, conn, addr):
         player = None
         while not self.killed:
-            try:
-                data = conn.recv(1)
-            except Exception:
-                if player == "1":
-                    self.game.p1.ishuman = False
-                if player == "2":
-                    self.game.p2.ishuman = False
-                break
-            if data.decode() == "":
-                msg = "redUnknown"
-            else:
-                if not self.game:
-                    self.game = Game({"width": self.winw, "height": self.winh})
-
-                if player is None:
-                    if data.decode() == "1" or data.decode() == "2":
-                        if data.decode() == "1":
-                            if self.game.p1.ishuman:
-                                msg = "redSomeone is already player 1"
-                            else:
-                                self.game.p1.ishuman = True
-                                msg = "yellowYou are player 1"
-                                player = "1"
-                                if self.game.p2.ishuman:
-                                    self.game.start()
-                        if data.decode() == "2":
-                            if self.game.p2.ishuman:
-                                msg = "redSomeone is already player 2"
-                            else:
-                                self.game.p2.ishuman = True
-                                msg = "yellowYou are player 2"
-                                player = "2"
-                                if self.game.p1.ishuman:
-                                    self.game.start()
-                    else:
-                        msg = "redUnknown"
-
-                else:
-                    if data.decode() == "w":
-                        msg = "greenup"
-                        if player == "1":
-                            self.game.p1.movement = -1
-                        else:
-                            self.game.p2.movement = -1
-
-                    elif data.decode() == "s":
-                        if player == "1":
-                            self.game.p1.movement = 1
-                        else:
-                            self.game.p2.movement = 1
-                        msg = "greendown"
-                    else:
-                        msg = "redUnknown"
-
-            try:
-                conn.send(msg.encode())
-            except Exception:
-                if player == "1":
-                    self.game.p1.ishuman = False
-                if player == "2":
-                    self.game.p2.ishuman = False
-                if not self.game.p1.ishuman and not self.game.p2.ishuman:
-                    self.game = None
-                break
+            data = b''
+            if player:
+                try:
+                    data = conn.recv(1)
+                    # It is required to send text to find dead connections,
+                    # because 'recv' will happily continue without errors.
+                    # We send back some dummy data to detect closed sockets,
+                    # because empty strings are not enough or even send at all.
+                    # tldr: I kind of hate sockets now >.<
+                    conn.send(b"_")
+                except Exception as e:
+                    if player == "1":
+                        self.game.p1.ishuman = False
+                        self.game.reset()
+                    if player == "2":
+                        self.game.p2.ishuman = False
+                        self.game.reset()
+                    if not self.game.p1.ishuman and not self.game.p2.ishuman:
+                        self.game = None
+                    break
+            if not self.game:
+                self.game = Game({"width": self.winw, "height": self.winh})
+            # We strip the data and then check if it contains any data.
+            # This is done to reset the movement only when new keys are send.
+            # Otherwise no movement would be possible at all,
+            # as real messages are frequently followed by an empty message.
+            request = data.decode().strip()
+            movements = {"w": -1, "s": 1}
+            if player == "1" and request:
+                self.game.p1.movement = movements.get(request, 0)
+            elif player == "2" and request:
+                self.game.p2.movement = movements.get(request, 0)
+            elif not self.game.p1.ishuman:
+                player = "1"
+                self.game.p1.ishuman = True
+                if self.game.p2.ishuman:
+                    self.game.reset()
+            elif not self.game.p2.ishuman:
+                player = "2"
+                self.game.p2.ishuman = True
+                if self.game.p1.ishuman:
+                    self.game.reset()
