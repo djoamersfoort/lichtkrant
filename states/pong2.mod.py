@@ -171,22 +171,27 @@ class State(BaseState):
                 for y in range(0, self.winh):
                     if y % 2 == 0:
                         pixels[y][int(self.winw / 2)] = WHITE
-                score_left_x = round(self.game.dims["width"] / 4) - 1
-                for y, row in enumerate(number(self.game.p1.score)):
-                    for x, pixel in enumerate(row):
-                        if pixel:
-                            if self.game.p1.has_won:
-                                pixels[y + 1][score_left_x + x] = GREEN
-                            else:
-                                pixels[y + 1][score_left_x + x] = WHITE
-                score_right_x = round(self.game.dims["width"] / 4 * 3) - 1
-                for y, row in enumerate(number(self.game.p2.score)):
-                    for x, pixel in enumerate(row):
-                        if pixel:
-                            if self.game.p2.has_won:
-                                pixels[y + 1][score_right_x + x] = GREEN
-                            else:
-                                pixels[y + 1][score_right_x + x] = WHITE
+                scores = [
+                    {
+                        "score": list(str(self.game.p1.score)),
+                        "color": GREEN if self.game.p1.has_won else WHITE,
+                        "center": round(self.game.dims["width"] / 4 - 1)
+                    },
+                    {
+                        "score": list(str(self.game.p2.score)),
+                        "color": GREEN if self.game.p2.has_won else WHITE,
+                        "center": round((self.game.dims["width"] / 4 * 3) - 1)
+                    }
+                ]
+                for sc in scores:
+                    digit_left = len(sc["score"]) * 2
+                    for index, digit in enumerate(sc["score"]):
+                        for y, row in enumerate(number(digit)):
+                            for x, pixel in enumerate(row):
+                                if pixel:
+                                    pos = sc["center"] - digit_left + x
+                                    pos += index * 4
+                                    pixels[y + 1][pos] = sc["color"]
                 # flatten, convert and write buffer to display
                 self.output_frame(bytes(flatten(pixels)))
                 sleep(1 / 30)
