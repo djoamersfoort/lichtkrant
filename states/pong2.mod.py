@@ -202,7 +202,7 @@ class State(BaseState):
             s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
             s.bind(("0.0.0.0", 9999))
             s.listen()
-            while True:
+            while not self.killed:
                 conn, addr = s.accept()
                 threading.Thread(target=self.msg, args=(conn, addr)).start()
 
