@@ -127,7 +127,7 @@ class Ball:
             self.y = min(max(self.y, 0.01), self.bounds["height"] - 1.01)
 
     def reset(self, side=None):
-        self.velocity = 1
+        self.velocity = 2
         dirs = {"right": list(range(45, 135)), "left": list(range(225, 315))}
         self.direction = choice(dirs.get(side, dirs["left"] + dirs["right"]))
         self.x = self.bounds["width"] / 2
