@@ -194,7 +194,6 @@ class State(BaseState):
                                     pixels[y + 1][pos] = sc["color"]
                 # flatten, convert and write buffer to display
                 self.output_frame(bytes(flatten(pixels)))
-                sleep(1 / 30)
 
     def receive(self):
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
