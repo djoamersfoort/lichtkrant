@@ -35,7 +35,7 @@ class State(BaseState):
 
     # module runner
     def run(self):
-        gifs = glob.glob('static/*.gif')
+        gifs = glob.glob('static/gifs/*.gif')
         random.shuffle(gifs)
         sequence = self.get_image(gifs[0])
 
