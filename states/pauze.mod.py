@@ -1,6 +1,6 @@
 from time import sleep
-from datetime import datetime, timedelta
-from PIL import Image, ImageDraw, ImageFont
+from datetime import timedelta, datetime
+from PIL import Image, ImageDraw, ImageFont, ImageOps
 from states.base import BaseState
 
 
@@ -9,12 +9,12 @@ class State(BaseState):
     # module information
     name = "pauze"
     index = 10
-    delay = 5
+    delay = 15
 
     # module check function
     def check(self, state):
         now = datetime.now()
-        return now.weekday() == 5 and now.hour == 11 and 30 <= now.minute <= 45
+        return now.weekday() == 5 and now.hour == 11 and 30 <= now.minute < 45
 
     # module runner
     def run(self):
@@ -22,8 +22,10 @@ class State(BaseState):
         font_path = "/usr/share/fonts/truetype/noto/NotoMono-Regular.ttf"
         text = "|PAUZE|"
 
-        break_end = datetime.today()
-        break_end = break_end.replace(hour=11, minute=45)
+        break_end = datetime.now()
+        break_end = break_end.replace(hour=11, minute=45, second=0)
+
+        blink_invert = False
 
         while not self.killed:
             image = Image.new("RGB", (96, 32), "black")
@@ -32,11 +34,22 @@ class State(BaseState):
             draw = ImageDraw.Draw(image)
             draw.text((48, 3), text, fill="orange", anchor="mt", font=font)
 
-            diff = max((break_end - datetime.now()).seconds, 0)
-            date_text = str(timedelta(seconds=diff))
+            diff = break_end - datetime.now()
+            diff_sec = 0
+
+            if diff.days == 0:
+                diff_sec = diff.seconds
+
+            date_text = str(timedelta(seconds=diff_sec))
 
             font = ImageFont.truetype(font_path, size=12)
             draw.text((48, 29), date_text, fill="yellow", anchor="mb", font=font)
+
+            if diff_sec == 0:
+                if blink_invert:
+                    image = ImageOps.invert(image)
+
+                blink_invert = not blink_invert
 
             self.output_image(image)
             sleep(0.5)

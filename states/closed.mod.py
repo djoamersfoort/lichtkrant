@@ -21,14 +21,18 @@ class State(BaseState):
         os.system("shutdown 1")
 
         # shutdown text
+        hal_path = "static/hal.png"
         font = "/usr/share/fonts/truetype/noto/NotoMono-Regular.ttf"
-        text = "Doei :("
+        text = "Goodbye,\nDave."
 
         image = Image.new("RGB", (96, 32), "black")
-        font = ImageFont.truetype(font, size=20)
+        font = ImageFont.truetype(font, size=13)
 
         draw = ImageDraw.Draw(image)
-        draw.text((48, 16), text, fill="red", anchor="mm", font=font)
+        draw.text((34, 16), text, fill="red", anchor="lm", font=font, spacing=-2)
+
+        hal_image = Image.open(hal_path).convert("RGBA")
+        image.paste(hal_image, (1, 1))
 
         while not self.killed:
             self.output_image(image)
