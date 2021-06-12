@@ -34,7 +34,7 @@ class State(BaseState):
 
     vol_uri = "https://music.bitlair.nl/trollibox/data/player/space/volume"
     vol_data = {
-        "volume": 0.49
+        "volume": 0.55
     }
 
     # module check function

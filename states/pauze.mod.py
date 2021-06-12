@@ -9,7 +9,7 @@ class State(BaseState):
     # module information
     name = "pauze"
     index = 10
-    delay = 30
+    delay = 5
 
     # module check function
     def check(self, state):
@@ -32,7 +32,7 @@ class State(BaseState):
             draw = ImageDraw.Draw(image)
             draw.text((48, 3), text, fill="orange", anchor="mt", font=font)
 
-            diff = (break_end - datetime.now()).seconds
+            diff = max((break_end - datetime.now()).seconds, 0)
             date_text = str(timedelta(seconds=diff))
 
             font = ImageFont.truetype(font_path, size=12)
