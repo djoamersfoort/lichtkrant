@@ -1,7 +1,7 @@
 import threading
 import socket
 from random import choice
-from time import sleep
+from time import sleep,time
 import math
 
 from states.base import BaseState
@@ -127,7 +127,7 @@ class Ball:
             self.y = min(max(self.y, 0.01), self.bounds["height"] - 1.01)
 
     def reset(self, side=None):
-        self.velocity = 2
+        self.velocity = 1.5
         dirs = {"right": list(range(45, 135)), "left": list(range(225, 315))}
         self.direction = choice(dirs.get(side, dirs["left"] + dirs["right"]))
         self.x = self.bounds["width"] / 2
@@ -153,6 +153,7 @@ class State(BaseState):
     def run(self):
         while not self.killed:
             if self.game:
+                time_start = time()
                 self.game.update()
                 # create a black empty set of pixels
                 pixels = []
@@ -194,7 +195,9 @@ class State(BaseState):
                                     pixels[y + 1][pos] = sc["color"]
                 # flatten, convert and write buffer to display
                 self.output_frame(bytes(flatten(pixels)))
-
+                time_stop = time()
+                time_delta = time_start-time_stop
+                sleep(max((1/self.delay)-time_delta,0))
     def receive(self):
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
             s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
