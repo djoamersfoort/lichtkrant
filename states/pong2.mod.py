@@ -2,7 +2,7 @@ import threading
 import socket
 import pickle
 from random import choice
-from time import sleep,time
+from time import sleep
 import math
 from Crypto.PublicKey import RSA
 from Crypto.Random import get_random_bytes
@@ -154,7 +154,7 @@ class Ball:
             self.y = min(max(self.y, 0.01), self.bounds["height"] - 1.01)
 
     def reset(self, side=None):
-        self.velocity = 1.5
+        self.velocity = 2
         dirs = {"right": list(range(45, 135)), "left": list(range(225, 315))}
         self.direction = choice(dirs.get(side, dirs["left"] + dirs["right"]))
         self.x = self.bounds["width"] / 2
@@ -221,6 +221,7 @@ class State(BaseState):
                                     pixels[y + 1][pos] = sc["color"]
                 # flatten, convert and write buffer to display
                 self.output_frame(bytes(flatten(pixels)))
+
     def receive(self):
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
             s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
