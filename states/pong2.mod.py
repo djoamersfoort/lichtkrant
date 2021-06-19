@@ -238,17 +238,9 @@ class State(BaseState):
         while not self.killed:
             data = b''
             if player:
-                try:
-                    data = encryptor.recv(1)
-                    #print(data)
-                    # It is required to send text to find dead connections,
-                    # because 'recv' will happily continue without errors.
-                    # We send back some dummy data to detect closed sockets,
-                    # because empty strings are not enough or even send at all.
-                    # tldr: I kind of hate sockets now >.<
-                    encryptor.send(b"_")
-                except Exception:
-                    raise
+                data = encryptor.recv(1)
+                encryptor.send(b"_")
+                if not data:
                     if player == "1":
                         self.game.p1.ishuman = False
                         self.game.reset()
@@ -257,7 +249,12 @@ class State(BaseState):
                         self.game.reset()
                     if not self.game.p1.ishuman and not self.game.p2.ishuman:
                         self.game = None
-                    break
+                    #print(data)
+                    # It is required to send text to find dead connections,
+                    # because 'recv' will happily continue without errors.
+                    # We send back some dummy data to detect closed sockets,
+                    # because empty strings are not enough or even send at all.
+                    # tldr: I kind of hate sockets now >.<
             if not self.game:
                 self.game = Game({"width": self.winw, "height": self.winh})
             # We strip the data and then check if it contains any data.
