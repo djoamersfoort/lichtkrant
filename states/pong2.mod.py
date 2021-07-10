@@ -1,14 +1,41 @@
 import threading
 import socket
+import pickle
 from random import choice
 from time import sleep
 import math
+from Crypto.PublicKey import RSA
+from Crypto.Random import get_random_bytes
+from Crypto.Cipher import AES, PKCS1_OAEP
+
 
 from states.base import BaseState
 
 WHITE = [255, 255, 255]
 BLUE = [0, 0, 255]
 GREEN = [0, 255, 0]
+
+class Encryptor:
+    def __init__(self,socket):
+        self.socket = socket
+    def send(self,data):
+        self.socket.sendall(data)
+    def recv(self,length):
+        self.enc_data_in = self.socket.recv(length)
+        if not self.enc_data_in:
+            return None
+        return self.cipher_aes.decrypt(self.enc_data_in)
+    def handshake(self):
+        self.session_key = get_random_bytes(16)
+        self.nonce = get_random_bytes(8)
+        self.data_in = pickle.loads(self.socket.recv(8192))
+        self.public_key = self.data_in["public key"]
+        self.recipient_key = RSA.import_key(self.public_key)
+        self.cipher_rsa = PKCS1_OAEP.new(self.recipient_key)
+        self.enc_session_key = self.cipher_rsa.encrypt(self.session_key)
+        self.cipher_aes = AES.new(self.session_key, AES.MODE_CTR,nonce=self.nonce)
+        self.socket.sendall(pickle.dumps({'encrypted session key':self.enc_session_key,
+                                    'nonce':self.nonce}))
 
 
 def number(num):
@@ -203,22 +230,18 @@ class State(BaseState):
             s.listen()
             while not self.killed:
                 conn, addr = s.accept()
-                threading.Thread(target=self.msg, args=(conn, addr)).start()
+                encryptor = Encryptor(conn)
+                encryptor.handshake()
+                threading.Thread(target=self.msg, args=(conn, addr, encryptor)).start()
 
-    def msg(self, conn, addr):
+    def msg(self, conn, addr, encryptor):
         player = None
         while not self.killed:
             data = b''
             if player:
-                try:
-                    data = conn.recv(1)
-                    # It is required to send text to find dead connections,
-                    # because 'recv' will happily continue without errors.
-                    # We send back some dummy data to detect closed sockets,
-                    # because empty strings are not enough or even send at all.
-                    # tldr: I kind of hate sockets now >.<
-                    conn.send(b"_")
-                except Exception:
+                data = encryptor.recv(1)
+                encryptor.send(b"_")
+                if not data:
                     if player == "1":
                         self.game.p1.ishuman = False
                         self.game.reset()
@@ -227,7 +250,12 @@ class State(BaseState):
                         self.game.reset()
                     if not self.game.p1.ishuman and not self.game.p2.ishuman:
                         self.game = None
-                    break
+                    #print(data)
+                    # It is required to send text to find dead connections,
+                    # because 'recv' will happily continue without errors.
+                    # We send back some dummy data to detect closed sockets,
+                    # because empty strings are not enough or even send at all.
+                    # tldr: I kind of hate sockets now >.<
             if not self.game:
                 self.game = Game({"width": self.winw, "height": self.winh})
             # We strip the data and then check if it contains any data.
