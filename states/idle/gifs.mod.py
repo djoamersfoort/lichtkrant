@@ -42,4 +42,4 @@ class State(BaseState):
         while not self.killed:
             for image in sequence:
                 self.output_image(image)
-                sleep(0.06)
+                sleep(image.info['duration'] / 1000)
