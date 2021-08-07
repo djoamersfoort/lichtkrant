@@ -2,9 +2,8 @@ from states.base import BaseState
 from time import sleep
 from datetime import datetime
 from PIL import Image, ImageDraw, ImageFont
-import requests
 from math import floor
-
+import requests
 class State(BaseState):
     # module information
     name = "gamen"
@@ -31,7 +30,7 @@ class State(BaseState):
             if self.elapsed < self.delay / 2:
                 fsize = 14 if len(keer_gegamed) >= 3 else 18
                 font = ImageFont.truetype(font_path, size=fsize)
-                draw.text((11, 16), keer_gegamed, fill="white", anchor="mm", font=font)
+                draw.text((15, 16), keer_gegamed, fill="white", anchor="mm", font=font)
 
                 font = ImageFont.truetype(font_path, size=8)
                 nm_games = "N&M Game" if keer_gegamed == 1 else "N&M Games"
@@ -43,8 +42,8 @@ class State(BaseState):
                 draw.text((49, 1), "WALL OF SHAME", fill="orange", anchor="mt", font=font)
                 font = ImageFont.truetype(font_path, size=7)
                 for i in range(0, len(wall_of_shame)):
-                    height = 16 if i % 2 == 0 else 26
-                    draw.text((1 + floor(i / 2) * i * len(wall_of_shame[i]) * 4, height), wall_of_shame[i], fill="white", anchor="lm", font=font)
+                    height = 17 if i % 2 == 0 else 26
+                    draw.text((1 + i * 20, height), wall_of_shame[i], fill="white", anchor="lm", font=font)
 
             self.output_image(image)
             sleep(1)
