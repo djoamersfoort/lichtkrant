@@ -3,6 +3,7 @@ from time import sleep
 from datetime import datetime
 from PIL import Image, ImageDraw, ImageFont
 import requests
+from math import floor
 
 class State(BaseState):
     # module information
@@ -30,20 +31,20 @@ class State(BaseState):
             if self.elapsed < self.delay / 2:
                 fsize = 14 if len(keer_gegamed) >= 3 else 18
                 font = ImageFont.truetype(font_path, size=fsize)
-                draw.text((18, 16), keer_gegamed, fill="white", anchor="mm", font=font)
+                draw.text((2, 16), keer_gegamed, fill="white", anchor="lm", font=font)
 
-                font = ImageFont.truetype(font_path, size=9)
+                font = ImageFont.truetype(font_path, size=8)
                 nm_games = "N&M Game" if keer_gegamed == 1 else "N&M Games"
-                draw.text((66, 11), nm_games, fill="white", anchor="mm", font=font)
-                draw.text((66, 18), "gespeeld vóór", fill="white", anchor="mm", font=font)
-                draw.text((66, 25), "game tijd!", fill="white", anchor="mm", font=font)
+                draw.text((60, 7), nm_games, fill="white", anchor="mm", font=font)
+                draw.text((60, 16), "gespeeld vóór", fill="white", anchor="mm", font=font)
+                draw.text((60, 25), "game tijd!", fill="white", anchor="mm", font=font)
             else:
                 font = ImageFont.truetype(font_path, size=12)
                 draw.text((49, 1), "WALL OF SHAME", fill="orange", anchor="mt", font=font)
                 font = ImageFont.truetype(font_path, size=7)
                 for i in range(0, len(wall_of_shame)):
                     height = 16 if i % 2 == 0 else 26
-                    draw.text((1 + i * 15, height), wall_of_shame[i], fill="white", anchor="lm", font=font)
+                    draw.text((1 + floor(i / 2) * 18, height), wall_of_shame[i], fill="white", anchor="lm", font=font)
 
             self.output_image(image)
             sleep(1)
