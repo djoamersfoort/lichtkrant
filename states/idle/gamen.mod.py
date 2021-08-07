@@ -4,13 +4,15 @@ from datetime import datetime
 from PIL import Image, ImageDraw, ImageFont
 from math import floor
 import requests
+
+
 class State(BaseState):
     # module information
     name = "gamen"
     index = 0
     delay = 16
     elapsed = 0
-    
+
     # module check function
     def check(self, _state):
         dt = datetime.now()
@@ -18,7 +20,7 @@ class State(BaseState):
 
     def run(self):
         font_path = "/usr/share/fonts/truetype/noto/NotoMono-Regular.ttf"
-        
+
         while not self.killed:
             response = requests.get("https://nm-games.eu/games/djo-game-register.json").json()
             keer_gegamed = str(response["keer_gegamed"])
@@ -26,7 +28,7 @@ class State(BaseState):
 
             image = Image.new("RGB", (96, 32), (0, 0, 50))
             draw = ImageDraw.Draw(image)
-        
+
             if self.elapsed < self.delay / 2:
                 fsize = 14 if len(keer_gegamed) >= 3 else 18
                 font = ImageFont.truetype(font_path, size=fsize)
