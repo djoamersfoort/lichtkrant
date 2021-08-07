@@ -34,9 +34,9 @@ class State(BaseState):
 
                 font = ImageFont.truetype(font_path, size=8)
                 nm_games = "N&M Game" if keer_gegamed == 1 else "N&M Games"
-                draw.text((60, 7), nm_games, fill="white", anchor="mm", font=font)
-                draw.text((60, 16), "gespeeld vóór", fill="white", anchor="mm", font=font)
-                draw.text((60, 25), "game tijd!", fill="white", anchor="mm", font=font)
+                draw.text((63, 7), nm_games, fill="white", anchor="mm", font=font)
+                draw.text((63, 16), "gespeeld vóór", fill="white", anchor="mm", font=font)
+                draw.text((63, 25), "game tijd!", fill="white", anchor="mm", font=font)
             else:
                 font = ImageFont.truetype(font_path, size=12)
                 draw.text((49, 1), "WALL OF SHAME", fill="orange", anchor="mt", font=font)
