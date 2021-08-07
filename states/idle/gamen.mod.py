@@ -44,7 +44,7 @@ class State(BaseState):
                 font = ImageFont.truetype(font_path, size=7)
                 for i in range(0, len(wall_of_shame)):
                     height = 16 if i % 2 == 0 else 26
-                    draw.text((1 + floor(i / 2) * 28, height), wall_of_shame[i], fill="white", anchor="lm", font=font)
+                    draw.text((1 + floor(i / 2) * i * len(wall_of_shame[i]) * 4, height), wall_of_shame[i], fill="white", anchor="lm", font=font)
 
             self.output_image(image)
             sleep(1)
