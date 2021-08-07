@@ -17,7 +17,7 @@ class State(BaseState):
         return (dt.weekday() == 4 and (dt.hour < 21 or (dt.hour == 21 and dt.minute < 30))) or (dt.weekday() == 5 and dt.hour < 13)
 
     def run(self):
-        font_path = "https://nm-games.eu/nmfont.ttf"
+        font_path = "/usr/share/fonts/truetype/noto/NotoMono-Regular.ttf"
         
         while not self.killed:
             response = requests.get("https://nm-games.eu/games/djo-game-register.json").json()
