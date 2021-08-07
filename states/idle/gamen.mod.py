@@ -2,7 +2,6 @@ from states.base import BaseState
 from time import sleep
 from datetime import datetime
 from PIL import Image, ImageDraw, ImageFont
-from math import floor
 import requests
 
 
