@@ -8,7 +8,7 @@ class State(BaseState):
     # module information
     name = "dvd"
     index = 0
-    delay = 45
+    delay = 30
 
     # check function
     def check(self, state):
@@ -31,7 +31,7 @@ class State(BaseState):
     winw = 96
     winh = 32
 
-    frame_delay = 1/30
+    frame_delay = 1/45
 
     # module runner
     def run(self):
