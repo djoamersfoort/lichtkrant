@@ -11,30 +11,6 @@ BLUE = [0, 0, 255]
 GREEN = [0, 255, 0]
 
 
-def number(num):
-    numbers = {
-        "0": [[1, 1, 1], [1, 0, 1], [1, 0, 1], [1, 0, 1], [1, 1, 1]],
-        "1": [[0, 0, 1], [0, 0, 1], [0, 0, 1], [0, 0, 1], [0, 0, 1]],
-        "2": [[1, 1, 1], [0, 0, 1], [1, 1, 1], [1, 0, 0], [1, 1, 1]],
-        "3": [[1, 1, 1], [0, 0, 1], [1, 1, 1], [0, 0, 1], [1, 1, 1]],
-        "4": [[1, 0, 1], [1, 0, 1], [1, 1, 1], [0, 0, 1], [0, 0, 1]],
-        "5": [[1, 1, 1], [1, 0, 0], [1, 1, 1], [0, 0, 1], [1, 1, 1]],
-        "6": [[1, 1, 1], [1, 0, 0], [1, 1, 1], [1, 0, 1], [1, 1, 1]],
-        "7": [[1, 1, 1], [0, 0, 1], [0, 0, 1], [0, 0, 1], [0, 0, 1]],
-        "8": [[1, 1, 1], [1, 0, 1], [1, 1, 1], [1, 0, 1], [1, 1, 1]],
-        "9": [[1, 1, 1], [1, 0, 1], [1, 1, 1], [0, 0, 1], [1, 1, 1]]
-    }
-    return numbers.get(str(num), [])
-
-
-def flatten(s):
-    if s == []:
-        return s
-    if isinstance(s[0], list):
-        return flatten(s[0]) + flatten(s[1:])
-    return s[:1] + flatten(s[1:])
-
-
 class Game:
     def __init__(self, dims):
         self.dims = dims
@@ -68,9 +44,8 @@ class Game:
                 self.ball.direction = 180 - (bounce_pos + 1) * (180 / steps)
                 self.ball.velocity *= 1.1
                 return
-            else:
-                self.p2.score += 1
-                self.ball.reset("left")
+            self.p2.score += 1
+            self.ball.reset("left")
         elif round(self.ball.x) >= self.dims["width"] - 2:
             bounce_pos = self.ball.y - self.p2.y
             if bounce_pos >= 0 and bounce_pos <= self.p2.height:
@@ -78,9 +53,8 @@ class Game:
                 self.ball.direction = 180 + ((bounce_pos + 1) * (180 / steps))
                 self.ball.velocity *= 1.1
                 return
-            else:
-                self.p1.score += 1
-                self.ball.reset("right")
+            self.p1.score += 1
+            self.ball.reset("right")
         # check winner
         if self.p1.score >= 11 and self.p1.score - self.p2.score >= 2:
             self.p1.has_won = True
@@ -109,7 +83,7 @@ class Player:
     def color(self):
         if self.has_won:
             return GREEN
-        elif self.ishuman:
+        if self.ishuman:
             return BLUE
         return WHITE
 
@@ -173,27 +147,25 @@ class State(BaseState):
                         pixels[y][int(self.winw / 2)] = WHITE
                 scores = [
                     {
-                        "score": list(str(self.game.p1.score)),
+                        "score": str(self.game.p1.score),
                         "color": GREEN if self.game.p1.has_won else WHITE,
                         "center": round(self.game.dims["width"] / 4 - 1)
                     },
                     {
-                        "score": list(str(self.game.p2.score)),
+                        "score": str(self.game.p2.score),
                         "color": GREEN if self.game.p2.has_won else WHITE,
                         "center": round((self.game.dims["width"] / 4 * 3) - 1)
                     }
                 ]
                 for sc in scores:
                     digit_left = len(sc["score"]) * 2
-                    for index, digit in enumerate(sc["score"]):
-                        for y, row in enumerate(number(digit)):
-                            for x, pixel in enumerate(row):
-                                if pixel:
-                                    pos = sc["center"] - digit_left + x
-                                    pos += index * 4
-                                    pixels[y + 1][pos] = sc["color"]
+                    for y, row in enumerate(self.text(sc["score"])):
+                        for x, pixel in enumerate(row):
+                            if pixel:
+                                pos = sc["center"] - digit_left + x
+                                pixels[y + 1][pos] = sc["color"]
                 # flatten, convert and write buffer to display
-                self.output_frame(bytes(flatten(pixels)))
+                self.output_frame(bytes(self.flatten(pixels)))
 
     def receive(self):
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
@@ -205,7 +177,7 @@ class State(BaseState):
                 conn, addr = s.accept()
                 threading.Thread(target=self.msg, args=(conn, addr)).start()
 
-    def msg(self, conn, addr):
+    def msg(self, conn, _addr):
         player = None
         while not self.killed:
             data = b''
