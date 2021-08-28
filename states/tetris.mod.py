@@ -6,19 +6,19 @@ from time import sleep, time
 from states.base import BaseState
 
 
-GREY = [100, 100, 100]
-DARK_GREY = [50, 50, 50]
+GREY = [150, 150, 150]
+DARK_GREY = [90, 90, 90]
 BLACK = [0, 0, 0]
-BLUE = [0, 0, 100]
-GREEN = [0, 100, 0]
-RED = [100, 0, 0]
-CYAN = [0, 100, 100]
-ORANGE = [100, 70, 0]
-YELLOW = [100, 100, 0]
-PURPLE = [100, 0, 100]
-GOLD = [100, 100, 0]
-SILVER = [80, 80, 80]
-BRONZE = [100, 60, 30]
+BLUE = [0, 0, 200]
+GREEN = [0, 150, 0]
+RED = [150, 0, 0]
+CYAN = [0, 150, 150]
+ORANGE = [150, 90, 0]
+YELLOW = [150, 150, 0]
+PURPLE = [150, 0, 150]
+GOLD = [150, 150, 0]
+SILVER = [120, 120, 120]
+BRONZE = [150, 90, 50]
 SHAPES = {
     "o": [[YELLOW, YELLOW], [YELLOW, YELLOW]],
     "i": [[CYAN], [CYAN], [CYAN], [CYAN]],
