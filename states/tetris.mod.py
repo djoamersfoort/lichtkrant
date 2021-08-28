@@ -351,7 +351,7 @@ class Piece:
 class State(BaseState):
     name = "tetris"
     index = 8
-    delay = 30
+    delay = 5
     game = None
     source = ""
 

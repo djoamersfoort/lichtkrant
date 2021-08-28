@@ -111,7 +111,7 @@ class Ball:
 class State(BaseState):
     name = "pong2"
     index = 7
-    delay = 30
+    delay = 5
     game = None
 
     winw = 96
