@@ -6,16 +6,19 @@ from time import sleep, time
 from states.base import BaseState
 
 
-WHITE = [255, 255, 255]
 GREY = [100, 100, 100]
+DARK_GREY = [50, 50, 50]
 BLACK = [0, 0, 0]
-BLUE = [0, 0, 255]
-GREEN = [0, 255, 0]
-RED = [255, 0, 0]
-CYAN = [0, 255, 255]
-ORANGE = [255, 170, 0]
-YELLOW = [255, 255, 0]
-PURPLE = [255, 0, 255]
+BLUE = [0, 0, 100]
+GREEN = [0, 100, 0]
+RED = [100, 0, 0]
+CYAN = [0, 100, 100]
+ORANGE = [100, 70, 0]
+YELLOW = [100, 100, 0]
+PURPLE = [100, 0, 100]
+GOLD = [100, 100, 0]
+SILVER = [80, 80, 80]
+BRONZE = [100, 60, 30]
 SHAPES = {
     "o": [[YELLOW, YELLOW], [YELLOW, YELLOW]],
     "i": [[CYAN], [CYAN], [CYAN], [CYAN]],
@@ -27,7 +30,7 @@ SHAPES = {
 }
 
 
-def overlap_text(pixels, text, base_x, base_y, color=WHITE):
+def overlap_text(pixels, text, base_x, base_y, color=GREY):
     for y, row in enumerate(BaseState.text(text)):
         for x, pixel in enumerate(row):
             if pixel:
@@ -107,11 +110,11 @@ class Game:
         players = sorted(players, key=lambda b: b.score, reverse=True)
         for pos, board in enumerate(players):
             if pos == 0:
-                overlap_text(pixels, "1", board.x + 6, 7, [210, 160, 30])
+                overlap_text(pixels, "1", board.x + 6, 7, GOLD)
             elif pos == 1:
-                overlap_text(pixels, "2", board.x + 6, 7, [190, 190, 190])
+                overlap_text(pixels, "2", board.x + 6, 7, SILVER)
             elif pos == 2:
-                overlap_text(pixels, "3", board.x + 6, 7, [205, 125, 50])
+                overlap_text(pixels, "3", board.x + 6, 7, BRONZE)
             else:
                 overlap_text(pixels, str(pos + 1), board.x + 6, 7)
         # Call draw method of each board
@@ -245,7 +248,7 @@ class Board:
         if any(self.rows[2].blocks):
             self.is_alive = False
             for row in self.rows:
-                row.blocks = [GREY if block else None for block in row.blocks]
+                row.blocks = [DARK_GREY if block else None for block in row.blocks]
 
     def draw(self, pixels):
         if self.in_game:
@@ -254,26 +257,23 @@ class Board:
                 overlap_buffer(pixels, [row.pixels()
                                for row in self.rows], self.x, 12)
                 if self.score >= 1000:
-                    pixels[1][self.x] = RED
-                    pixels[2][self.x] = RED
-                    pixels[3][self.x] = RED
-                    pixels[4][self.x] = RED
-                    pixels[5][self.x] = RED
+                    for i in range(1, 6):
+                        pixels[i][self.x] = GREY
                 try:
                     overlap_text(
                         pixels, str(self.score)[-3],
-                        self.x+1, 1, [255, 255, 255])
+                        self.x+1, 1, DARK_GREY)
                 except IndexError:
                     pass
                 try:
                     overlap_text(
                         pixels, str(self.score)[-2],
-                        self.x+4, 1, [200, 200, 200])
+                        self.x+4, 1, GREY)
                 except IndexError:
                     pass
                 overlap_text(
                     pixels, str(self.score - 1)[-1],
-                    self.x+7, 1, [150, 150, 150])
+                    self.x+7, 1, DARK_GREY)
             if self.is_alive and self.player:
                 # draw piece
                 overlap_buffer(pixels, self.next_piece.shape, self.x, 7)
@@ -284,7 +284,7 @@ class Board:
             if not self.is_alive:
                 overlap_text(pixels, "X", self.x + 4, 16, RED)
         else:
-            color = WHITE
+            color = GREY
             if self.player and self.ready_for_game:
                 color = GREEN
             elif self.player:
@@ -292,7 +292,7 @@ class Board:
             overlap_text(pixels, "p", self.x + 1, 16, color)
             overlap_text(pixels, str(self.index+1), self.x + 6, 16, color)
         # draw right border
-        overlap_buffer(pixels, [[WHITE]] * 20, self.x + 10, 12)
+        overlap_buffer(pixels, [[GREY]] * 20, self.x + 10, 12)
         for row in self.rows:
             if row.is_full():
                 self.rows.remove(row)
