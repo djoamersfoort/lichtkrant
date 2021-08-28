@@ -1,7 +1,7 @@
 import threading
 import socket
 from random import choice
-from time import sleep
+from time import sleep, time
 import math
 
 from states.base import BaseState
@@ -127,6 +127,8 @@ class State(BaseState):
     def run(self):
         while not self.killed:
             if self.game:
+                if not self.on_pi:
+                    time_start = time()
                 self.game.update()
                 # create a black empty set of pixels
                 pixels = []
@@ -166,6 +168,10 @@ class State(BaseState):
                                 pixels[y + 1][pos] = sc["color"]
                 # flatten, convert and write buffer to display
                 self.output_frame(bytes(self.flatten(pixels)))
+                if not self.on_pi:
+                    time_end = time()
+                    time_delta = time_start - time_end
+                    sleep(max(0.04-time_delta, 0))
 
     def receive(self):
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:

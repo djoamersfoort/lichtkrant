@@ -365,7 +365,8 @@ class State(BaseState):
     def run(self):
         while not self.killed:
             if self.game:
-                time_start = time()
+                if not self.on_pi:
+                    time_start = time()
                 # create a black empty set of pixels
                 pixels = []
                 for _ in range(32):
@@ -375,12 +376,14 @@ class State(BaseState):
                 # main game loop
                 self.game.update()
                 # draw all elements
-                self.game.draw(pixels)
+                if self.game:
+                    self.game.draw(pixels)
                 # flatten, convert and write buffer to display
                 self.output_frame(bytes(self.flatten(pixels)))
-                time_end = time()
-                time_delta = time_start - time_end
-                sleep(max(0.04-time_delta, 0))
+                if not self.on_pi:
+                    time_end = time()
+                    time_delta = time_start - time_end
+                    sleep(max(0.04-time_delta, 0))
 
     def receive(self):
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
@@ -403,6 +406,11 @@ class State(BaseState):
                     self.game.boards) if board.player is conn), None)
                 if board:
                     self.game.boards[index] = Board(index)
+                filled_boards = [
+                    board for board in self.game.boards if board.player
+                ]
+                if not filled_boards:
+                    self.game = None
                 break
             if not self.game:
                 self.game = Game()

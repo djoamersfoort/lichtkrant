@@ -1,5 +1,6 @@
 from threading import Thread
 from sys import stdout
+from shutil import which
 
 
 class BaseState(Thread):
@@ -8,6 +9,7 @@ class BaseState(Thread):
     def __init__(self):
         super().__init__()
         self.killed = False
+        self.on_pi = which("rpi-update")
 
     def kill(self):
         self.killed = True
