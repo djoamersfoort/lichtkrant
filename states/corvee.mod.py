@@ -19,11 +19,7 @@ class State(BaseState):
 
     # module check function
     def check(self, _state):
-        now = datetime.now()
-        if now.weekday() == 4: # friday
-            return now.hour == 21 and now.minute == 0
-        elif now.weekday() == 5: # saturday
-            return now.hour == 12 and now.minute == 30
+        return len(self.names) > 0
 
     # runner function
     def run(self):
