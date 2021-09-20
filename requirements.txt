@@ -1,4 +1,4 @@
 argparse==1.4.0
 paho-mqtt==1.5.1
-pillow==8.2.0
+pillow==8.3.2
 requests
