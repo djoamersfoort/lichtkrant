@@ -10,23 +10,27 @@ class State(BaseState):
     name = "corvee"
     index = 80
     delay = 60
+    check_elapsed = 0
     elapsed = 0
     flash = False
 
-    response = requests.get("https://corvee.djoamersfoort.nl/api/v1/selected").json()
-    names = response["selected"]
     colors = [(randint(128, 255), randint(128, 255), randint(128, 255)), (randint(128, 255), randint(128, 255), randint(128, 255)), (randint(128, 255), randint(128, 255), randint(128, 255))]
+    
+    # get corvee dashboard data
+    def get_names(self):
+        response = requests.get("https://corvee.djoamersfoort.nl/api/v1/selected").json()
+        names = response["selected"]
+        return names
 
     # module check function
     def check(self, _state):
-        now = datetime.now()
-        if now.weekday() == 4: # friday
-            return now.hour == 21 and now.minute == 0
-        elif now.weekday() == 5: # saturday
-            return now.hour == 12 and now.minute == 30
+        self.check_elapsed += 1
+        if self.check_elapsed % 10 == 0:
+            return len(self.get_names()) > 0
 
     # runner function
     def run(self):
+        names = self.get_names()
         font_path = "/usr/share/fonts/truetype/noto/NotoMono-Regular.ttf"
 
         while not self.killed:
@@ -41,8 +45,8 @@ class State(BaseState):
 
             if self.elapsed >= 14:
                 font = ImageFont.truetype(font_path, size=11)
-                for i in range(0, len(self.names)):
-                    draw.text((48, 5 + 11 * i), self.names[i], fill=self.colors[i], anchor="mm", font=font)
+                for i in range(0, len(names)):
+                    draw.text((48, 5 + 11 * i), names[i], fill=self.colors[i], anchor="mm", font=font)
                 for i in range(-100, 100):
                     draw.rectangle([(2, 2 + self.elapsed + i * 8), (8, 6 + self.elapsed + i * 8)], fill="blue")
                     draw.rectangle([(88, 2 + self.elapsed + i * 8), (94, 6 + self.elapsed + i * 8)], fill="blue")
