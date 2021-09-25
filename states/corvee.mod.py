@@ -10,24 +10,27 @@ class State(BaseState):
     name = "corvee"
     index = 80
     delay = 60
+    check_elapsed = 0
     elapsed = 0
     flash = False
 
     colors = [(randint(128, 255), randint(128, 255), randint(128, 255)), (randint(128, 255), randint(128, 255), randint(128, 255)), (randint(128, 255), randint(128, 255), randint(128, 255))]
     
     # get corvee dashboard data
-    def get_response(self):
+    def get_names(self):
         response = requests.get("https://corvee.djoamersfoort.nl/api/v1/selected").json()
         names = response["selected"]
         return names
 
     # module check function
     def check(self, _state):
-        return len(self.get_response()) > 0
+        self.check_elapsed += 1
+        if self.check_elapsed % 10 == 0:
+            return len(self.get_names()) > 0
 
     # runner function
     def run(self):
-        names = self.get_response()
+        names = self.get_names()
         font_path = "/usr/share/fonts/truetype/noto/NotoMono-Regular.ttf"
 
         while not self.killed:
