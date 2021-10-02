@@ -13,6 +13,7 @@ class State(BaseState):
     check_elapsed = 0
     elapsed = 0
     flash = False
+    shown = False
 
     colors = [(randint(128, 255), randint(128, 255), randint(128, 255)), (randint(128, 255), randint(128, 255), randint(128, 255)), (randint(128, 255), randint(128, 255), randint(128, 255))]
     
@@ -26,8 +27,10 @@ class State(BaseState):
     def check(self, _state):
         self.check_elapsed += 1
         if self.check_elapsed % 10 == 0:
-            return len(self.get_names()) > 0
-
+            if len(self.get_names()) > 0 and not self.shown:
+                self.shown = True
+                return True
+                
     # runner function
     def run(self):
         names = self.get_names()
