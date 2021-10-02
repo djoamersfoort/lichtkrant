@@ -48,6 +48,7 @@ class LichtKrant:
 
     def get_state(self, space_state):
         self.read_states()
+        
         # getting highest indexed state
         if self.args.module is not None:
             try:
