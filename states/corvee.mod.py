@@ -36,7 +36,7 @@ class State(BaseState):
         names = self.get_names()
         font_path = "/usr/share/fonts/truetype/noto/NotoMono-Regular.ttf"
 
-        while not self.killed:
+        while len(names) > 0:
 
             self.flash = not self.flash
             if self.elapsed < 3:
