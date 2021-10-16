@@ -4,30 +4,44 @@ from datetime import datetime
 from PIL import Image, ImageDraw, ImageFont
 import requests
 
+
 class State(BaseState):
     # module information
     name = "gamen"
     index = 0
     delay = 16
-    elapsed = 0
+    check_elapsed = 0
 
-    def get_response(self):
-        response = requests.get("https://nm-games.eu/media/djo-game-register.json").json()
+    @staticmethod
+    def get_response():
+        try:
+            response = requests.get("https://nm-games.eu/media/djo-game-register.json")
+        except requests.RequestException:
+            return 0, []
+        if not response.ok:
+            return 0, []
+        response = response.json()
         return response["keer_gegamed"], response["wall_of_shame"]
 
     # module check function
     def check(self, _state):
+        print("check")
+        self.check_elapsed += 1
+        if self.check_elapsed % 10 != 0:
+            return False
+
         keer_gegamed, _ = self.get_response()
         if keer_gegamed < 1:
             return False
 
         dt = datetime.now()
-        if dt.weekday() == 4: # friday
+        if dt.weekday() == 4:  # friday
             return dt.hour < 21 or (dt.hour == 21 and dt.minute < 30)
-        elif dt.weekday() == 5: # saturday
+        elif dt.weekday() == 5:  # saturday
             return dt.hour < 13
 
     def run(self):
+        elapsed = 0
         font_path = "/usr/share/fonts/truetype/noto/NotoMono-Regular.ttf"
 
         while not self.killed:
@@ -37,7 +51,7 @@ class State(BaseState):
             image = Image.new("RGB", (96, 32), (0, 0, 50))
             draw = ImageDraw.Draw(image)
 
-            if self.elapsed < self.delay / 2:
+            if elapsed < self.delay / 2:
                 fsize = 14 if len(keer_gegamed) >= 3 else 18
                 font = ImageFont.truetype(font_path, size=fsize)
                 draw.text((15, 16), keer_gegamed, fill="white", anchor="mm", font=font)
@@ -54,9 +68,9 @@ class State(BaseState):
                 font = ImageFont.truetype(font_path, size=7)
                 for i in range(0, len(wall_of_shame)):
                     height = 17 if i % 2 == 0 else 26
-                    draw.text(((1 + i * 20) - (self.elapsed - self.delay / 2) * (len(wall_of_shame) - 1), height), wall_of_shame[i], fill="white", anchor="lm", font=font)
-
+                    draw.text(((1 + i * 20) - (elapsed - self.delay / 2) * (len(wall_of_shame) - 1), height),
+                              wall_of_shame[i], fill="white", anchor="lm", font=font)
 
             self.output_image(image)
             sleep(1)
-            self.elapsed += 1
+            elapsed += 1
