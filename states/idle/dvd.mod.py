@@ -44,6 +44,7 @@ class State(BaseState):
 
         color = bytes([100, 100, 100])
         background = bytes([0, 0, 0])
+        flash_brightness = 0
 
         # change to a random color
         def change_color(color):
@@ -75,11 +76,15 @@ class State(BaseState):
             vertical_hit = posy <= 0 or posy >= self.winh - self.height - 1
 
             if horizontal_hit and vertical_hit:
-                for _i in range(0, 10):
-                    self.output_frame(color * 3072)
-                    sleep(0.15)
-                    self.output_frame(background * 3072)
-                    sleep(0.15)
+                for _i in range(0, 5):
+                    while flash_brightness < 240:
+                        self.output_frame(bytes([flash_brightness, flash_brightness, flash_brightness]) * 3072)
+                        flash_brightness += 20
+                        sleep(0.05)
+                    while flash_brightness > 0:
+                        self.output_frame(bytes([flash_brightness, flash_brightness, flash_brightness]) * 3072)
+                        flash_brightness -= 20
+                        sleep(0.05)
 
             if horizontal_hit:
                 addx *= -1
