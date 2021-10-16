@@ -10,17 +10,9 @@ class State(BaseState):
     index = 0
     delay = 16
     elapsed = 0
-
-    def get_response(self):
-        response = requests.get("https://nm-games.eu/media/djo-game-register.json").json()
-        return response["keer_gegamed"], response["wall_of_shame"]
-
+    
     # module check function
     def check(self, _state):
-        keer_gegamed, _ = self.get_response()
-        if keer_gegamed < 1:
-            return False
-
         dt = datetime.now()
         if dt.weekday() == 4: # friday
             return dt.hour < 21 or (dt.hour == 21 and dt.minute < 30)
@@ -29,17 +21,16 @@ class State(BaseState):
 
     def run(self):
         font_path = "/usr/share/fonts/truetype/noto/NotoMono-Regular.ttf"
-
+        
         while not self.killed:
             response = requests.get("https://nm-games.eu/media/djo-game-register.json").json()
             keer_gegamed = str(response["keer_gegamed"])
             wall_of_shame = response["wall_of_shame"]
 
-
             image = Image.new("RGB", (96, 32), (0, 0, 50))
             draw = ImageDraw.Draw(image)
-
-            if self.elapsed < self.delay / 2:
+        
+            if self.elapsed < self.delay / 2 or len(wall_of_shame) == 0:
                 fsize = 14 if len(keer_gegamed) >= 3 else 18
                 font = ImageFont.truetype(font_path, size=fsize)
                 draw.text((15, 16), keer_gegamed, fill="white", anchor="mm", font=font)
@@ -57,7 +48,6 @@ class State(BaseState):
                 for i in range(0, len(wall_of_shame)):
                     height = 17 if i % 2 == 0 else 26
                     draw.text(((1 + i * 20) - (self.elapsed - self.delay / 2) * (len(wall_of_shame) - 1), height), wall_of_shame[i], fill="white", anchor="lm", font=font)
-
 
             self.output_image(image)
             sleep(1)
