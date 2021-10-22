@@ -11,6 +11,8 @@ class State(BaseState):
     index = 0
     delay = 16
     check_elapsed = 0
+    
+    last_value = 0
 
     @staticmethod
     def get_response():
@@ -25,13 +27,12 @@ class State(BaseState):
 
     # module check function
     def check(self, _state):
-        print("check")
         self.check_elapsed += 1
         if self.check_elapsed % 10 != 0:
             return False
 
         keer_gegamed, _ = self.get_response()
-        if keer_gegamed < 1:
+        if keer_gegamed == self.last_value:
             return False
 
         dt = datetime.now()
@@ -46,6 +47,8 @@ class State(BaseState):
 
         while not self.killed:
             keer_gegamed, wall_of_shame = self.get_response()
+            self.last_value = keer_gegamed
+            
             keer_gegamed = str(keer_gegamed)
 
             image = Image.new("RGB", (96, 32), (0, 0, 50))
