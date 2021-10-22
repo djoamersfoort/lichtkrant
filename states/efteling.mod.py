@@ -13,28 +13,13 @@ class State(BaseState):
     delay = 60
 
     # requests data
-    put_uri = "https://music.bitlair.nl/trollibox/data/player/space/playlist"
-    put_data = {
-        "position": -1,
-        "tracks": [
-            "mpd://ak47/Ronny V   Efteling Dance Medley 2.0 (Officiële versie).mp3"
-        ]
-    }
+    vol_uri = "http://music.djoamersfoort.nl/api/v1/commands/?cmd=volume&volume=75"
 
-    del_uri = "https://music.bitlair.nl/trollibox/data/player/space/playlist"
-    del_data = {
-        "positions": [i for i in range(0, 60)]
-    }
-
-    skip_uri = "https://music.bitlair.nl/trollibox/data/player/space/current"
-    skip_data = {
-        "current": 1,
-        "relative": True
-    }
-
-    vol_uri = "https://music.bitlair.nl/trollibox/data/player/space/volume"
-    vol_data = {
-        "volume": 0.55
+    queue_uri = "http://music.djoamersfoort.nl/api/v1/replaceAndPlay"
+    queue_data = {
+        "item": {
+            "uri": "music-library/INTERNAL/Ronny V   Efteling Dance Medley 2.0 (Officiële versie).mp3"
+        }
     }
 
     # module check function
@@ -65,13 +50,9 @@ class State(BaseState):
 
     # queue efteling
     def queue_song(self):
-        requests.delete(self.del_uri, json=self.del_data)
+        requests.get(self.vol_uri)
         sleep(0.5)
-        requests.put(self.put_uri, json=self.put_data)
-        sleep(0.5)
-        requests.post(self.skip_uri, json=self.skip_data)
-        sleep(0.5)
-        requests.post(self.vol_uri, json=self.vol_data)
+        requests.post(self.queue_uri, json=self.queue_data)
 
     # module runner
     def run(self):
