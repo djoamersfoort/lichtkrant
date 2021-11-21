@@ -9,7 +9,7 @@ class State(BaseState):
     # module information
     name = "corvee"
     index = 80
-    delay = 60
+    delay = 3600
     check_elapsed = 0
 
     # get corvee dashboard data
