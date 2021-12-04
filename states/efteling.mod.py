@@ -27,9 +27,9 @@ class State(BaseState):
         now = datetime.now()
 
         if now.weekday() == 4:  # friday
-            return now.hour == 21 and now.minute == 55
+            return now.hour == 21 and 55 <= now.minute == 59
         elif now.weekday() == 5:  # saturday
-            return now.hour == 13 and now.minute == 25
+            return now.hour == 12 and 55 <= now.minute <= 59
 
     # load gif
     def get_image(self, path):
