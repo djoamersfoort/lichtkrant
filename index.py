@@ -102,6 +102,10 @@ class LichtKrant:
                 if time.time() >= end_time:
                     break
 
+                # Check if current state wants to disable itself
+                if not new_state.check(space_state):
+                    break
+
                 diff_state = self.get_state(space_state)
 
                 if diff_state.index > new_state.index:
