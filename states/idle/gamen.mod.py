@@ -36,10 +36,17 @@ class State(BaseState):
             return False
 
         dt = datetime.now()
+        """
+        Zonder avondlockdown het onderstaande:
+
         if dt.weekday() == 4:  # friday
             return dt.hour < 21 or (dt.hour == 21 and dt.minute < 30)
         elif dt.weekday() == 5:  # saturday
             return dt.hour < 13
+        """
+        if dt.weekday() != 5:
+            return False
+        return (dt.hour < 12 or (dt.hour == 12 and dt.minute < 30)) or (dt.hour > 12 and dt.hour < 16)
 
     def run(self):
         elapsed = 0
