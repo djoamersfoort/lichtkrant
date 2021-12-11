@@ -10,7 +10,6 @@ class State(BaseState):
     name = "corvee"
     index = 80
     delay = 3600
-    check_elapsed = 0
 
     # get corvee dashboard data
     @staticmethod
@@ -25,9 +24,7 @@ class State(BaseState):
 
     # module check function
     def check(self, _state):
-        self.check_elapsed += 1
-        if self.check_elapsed % 10 == 0:
-            return len(self.get_names()) > 0
+        return len(self.get_names()) > 0
 
     # runner function
     def run(self):
