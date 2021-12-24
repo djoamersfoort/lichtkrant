@@ -237,4 +237,6 @@ class State(BaseState):
                 self.calls += 1
                 if self.calls % 30 == 0 and self.game.p1.conn and self.game.p2.conn:
                     self.game.timer -= 1
-                sleep(.034)
+                
+                if not self.on_pi:
+                    sleep(.034)
