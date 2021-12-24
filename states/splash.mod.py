@@ -33,11 +33,11 @@ class Game:
         if self.timer == 0:
             self.p1.has_won = self.p2.has_won = True
 
-        if self.p1.left and not self.p1.right:
+        if self.p1.left and not self.p1.right: # naar links
             self.p1.vx -= self.a
-        elif self.p1.right and not self.p1.left:
+        elif self.p1.right and not self.p1.left: # naar rechts
             self.p1.vx += self.a
-        else:
+        else: # stoppen
             self.p1.vx /= 1.08
         if self.p2.left and not self.p2.right:
             self.p2.vx -= self.a
@@ -46,7 +46,7 @@ class Game:
         else:
             self.p2.vx /= 1.08
 
-        if self.p1.jumping and not self.p1.airborne:
+        if self.p1.jumping and not self.p1.airborne: # springen
             self.p1.airborne = True
             self.p1.vy = -5
         if self.p2.jumping and not self.p2.airborne:
@@ -55,7 +55,7 @@ class Game:
 
         self.p1.x += self.p1.vx
         self.p1.y += self.p1.vy
-        self.p1.vy += self.g
+        self.p1.vy += self.g # zwaartekracht
         if self.p1.x > self.platform["x1"] - self.p1.size and self.p1.x < self.platform["x2"] and self.p1.y > self.platform["height"] - self.p1.size:
             self.p1.y = self.platform["height"] - self.p1.size
             self.p1.airborne = False
@@ -69,6 +69,7 @@ class Game:
             self.p2.airborne = False
             self.p2.vy = 0
 
+        # collission detection
         if self.p1.x < self.p2.x + self.p2.size and self.p1.x + self.p1.size > self.p2.x and self.p1.y < self.p2.y + self.p2.size and self.p1.y + self.p1.size > self.p2.y:
             self.p1.vx /= 1.1
             self.p2.vx /= 1.1
@@ -97,6 +98,7 @@ class Game:
                         self.p2.y = self.p1.y - self.p1.size
                         self.p2.vy = 0
 
+        # grant score when someone fell off
         if self.p1.y > 30 and self.p2.y > 30:
             self.p1.has_won = True
             self.p2.has_won = True
@@ -210,6 +212,9 @@ class State(BaseState):
     # module runner
     def run(self):
         font_path = "/usr/share/fonts/truetype/noto/NotoMono-Regular.ttf"
+        font8 = ImageFont.truetype(font_path, size=8)
+        font12 = ImageFont.truetype(font_path, size=12)
+        font14 = ImageFont.truetype(font_path, size=14)
 
         while not self.killed:
             if self.game:
@@ -219,17 +224,14 @@ class State(BaseState):
                 currentBackg.paste(self.game.p1_img, (int(self.game.p1.x), int(self.game.p1.y)))
                 currentBackg.paste(self.game.p2_img, (int(self.game.p2.x), int(self.game.p2.y)))
                 draw = ImageDraw.Draw(currentBackg)
-                font = ImageFont.truetype(font_path, size=8)
                 tcolor = "red" if self.game.timer < 10 else "black"
-                draw.text((48, 26), str(self.game.timer), fill=tcolor, anchor="mm", font=font)
-                font = ImageFont.truetype(font_path, size=12)
-                draw.text((22, 26), str(self.game.p1.score), fill=(255,217,0), anchor="lm", font=font)
-                draw.text((74, 26), str(self.game.p2.score), fill=(0,174,0), anchor="rm", font=font)
-                font = ImageFont.truetype(font_path, size=14)
+                draw.text((48, 26), str(self.game.timer), fill=tcolor, anchor="mm", font=font8)
+                draw.text((22, 26), str(self.game.p1.score), fill=(255,217,0), anchor="lm", font=font12)
+                draw.text((74, 26), str(self.game.p2.score), fill=(0,174,0), anchor="rm", font=font12)
                 if self.game.p1.has_won or self.game.p2.has_won:
-                    draw.text((48, 3), "ROUND OVER!", fill=(120,0,0), anchor="mt", font=font)
+                    draw.text((48, 3), "ROUND OVER!", fill=(120,0,0), anchor="mt", font=font14)
                 elif not self.game.p1.conn or not self.game.p2.conn:
-                    draw.text((48, 3), "WAITING", fill=(120,0,0), anchor="mt", font=font)
+                    draw.text((48, 3), "WAITING", fill=(120,0,0), anchor="mt", font=font14)
                 self.output_image(currentBackg)
 
                 self.calls += 1
