@@ -158,6 +158,7 @@ class State(BaseState):
 
     def __init__(self):
         super().__init__()
+        self.fps = 60
         Thread(target=self.receive).start()
     
     # module check function
@@ -235,8 +236,7 @@ class State(BaseState):
                 self.output_image(currentBackg)
 
                 self.calls += 1
-                if self.calls % 30 == 0 and self.game.p1.conn and self.game.p2.conn:
+                if self.calls % self.fps == 0 and self.game.p1.conn and self.game.p2.conn:
                     self.game.timer -= 1
                 
-                if not self.on_pi:
-                    sleep(.034)
+                sleep(1 / self.fps)
