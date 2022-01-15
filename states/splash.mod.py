@@ -16,9 +16,9 @@ class Game:
     def __init__(self):
         self.p1 = Player(x = self.p1_x)
         self.p2 = Player(x = self.p2_x)
-        self.background = Image.open("./static/splash_assets/background.gif").convert(mode="RGB")
-        self.p1_img = Image.open("./static/splash_assets/Karakter1.gif").convert(mode="RGB")
-        self.p2_img = Image.open("./static/splash_assets/Karakter2.gif").convert(mode="RGB")
+        self.background = Image.open("./states/splash_assets/background.gif").convert(mode="RGB")
+        self.p1_img = Image.open("./states/splash_assets/Karakter1.gif").convert(mode="RGB")
+        self.p2_img = Image.open("./states/splash_assets/Karakter2.gif").convert(mode="RGB")
 
     def update(self):
         # connection updating
@@ -180,7 +180,7 @@ class State(BaseState):
             data = b''
             try:
                 data = conn.recv(3)
-                conn.send(b"_")
+                conn.send(b"_") # tyf een underscore om te melden dat je verbonden bent
             except Exception:
                 if self.game.p1.conn == conn:
                     self.game.reset()
@@ -238,5 +238,7 @@ class State(BaseState):
                 if self.calls % 30 == 0 and self.game.p1.conn and self.game.p2.conn:
                     self.game.timer -= 1
                 
-                if not self.on_pi:
+                if self.on_pi:
+                    sleep(.017)
+                else:
                     sleep(.034)
