@@ -158,7 +158,7 @@ class State(BaseState):
 
     def __init__(self):
         super().__init__()
-        self.fps = 60 if self.on_pi else 30
+        self.fps = 60
         Thread(target=self.receive).start()
     
     # module check function
