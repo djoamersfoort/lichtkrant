@@ -13,7 +13,7 @@ class State(BaseState):
     delay = 60
 
     # requests data
-    vol_uri = "http://music.djoamersfoort.nl/api/v1/commands/?cmd=volume&volume=75"
+    vol_uri = "http://music.djoamersfoort.nl/api/v1/commands/?cmd=volume&volume=50"
 
     queue_uri = "http://music.djoamersfoort.nl/api/v1/replaceAndPlay"
     queue_data = {
