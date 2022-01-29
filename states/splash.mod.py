@@ -10,8 +10,8 @@ class Game:
     p2_x = 71
     platform = {"x1": 10, "x2": 86, "height": 17}
     timer = 45
-    g = 0.49 # valversnelling
-    a = 0.05 # beweegversnelling
+    g = 0.3 # valversnelling
+    a = 0.04 # beweegversnelling
     
     def __init__(self):
         self.p1 = Player(x = self.p1_x)
@@ -48,10 +48,10 @@ class Game:
 
         if self.p1.jumping and not self.p1.airborne: # springen
             self.p1.airborne = True
-            self.p1.vy = -5
+            self.p1.vy = -2.5
         if self.p2.jumping and not self.p2.airborne:
             self.p2.airborne = True
-            self.p2.vy = -5
+            self.p2.vy = -2.5
 
         self.p1.x += self.p1.vx
         self.p1.y += self.p1.vy
@@ -99,13 +99,13 @@ class Game:
                         self.p2.vy = 0
 
         # grant score when someone fell off
-        if self.p1.y > 30 and self.p2.y > 30:
+        if self.p1.y > 32 and self.p2.y > 32:
             self.p1.has_won = True
             self.p2.has_won = True
-        elif self.p1.y > 30:
+        elif self.p1.y > 32:
             self.p2.has_won = True
             self.p2.score += 1
-        elif self.p2.y > 30:
+        elif self.p2.y > 32:
             self.p1.has_won = True
             self.p1.score += 1
 
