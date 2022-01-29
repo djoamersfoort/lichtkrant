@@ -10,15 +10,15 @@ class Game:
     p2_x = 71
     platform = {"x1": 10, "x2": 86, "height": 17}
     timer = 45
-    g = 0.981 # valversnelling
-    a = 0.1 # beweegversnelling
+    g = 0.49 # valversnelling
+    a = 0.05 # beweegversnelling
     
     def __init__(self):
         self.p1 = Player(x = self.p1_x)
         self.p2 = Player(x = self.p2_x)
-        self.background = Image.open("./states/splash_assets/background.gif").convert(mode="RGB")
-        self.p1_img = Image.open("./states/splash_assets/Karakter1.gif").convert(mode="RGB")
-        self.p2_img = Image.open("./states/splash_assets/Karakter2.gif").convert(mode="RGB")
+        self.background = Image.open("./static/splash_assets/background.gif").convert(mode="RGB")
+        self.p1_img = Image.open("./static/splash_assets/Karakter1.gif").convert(mode="RGB")
+        self.p2_img = Image.open("./static/splash_assets/Karakter2.gif").convert(mode="RGB")
 
     def update(self):
         # connection updating
@@ -38,13 +38,13 @@ class Game:
         elif self.p1.right and not self.p1.left: # naar rechts
             self.p1.vx += self.a
         else: # stoppen
-            self.p1.vx /= 1.08
+            self.p1.vx /= 1.06
         if self.p2.left and not self.p2.right:
             self.p2.vx -= self.a
         elif self.p2.right and not self.p2.left:
             self.p2.vx += self.a
         else:
-            self.p2.vx /= 1.08
+            self.p2.vx /= 1.06
 
         if self.p1.jumping and not self.p1.airborne: # springen
             self.p1.airborne = True
@@ -158,7 +158,6 @@ class State(BaseState):
 
     def __init__(self):
         super().__init__()
-        self.fps = 60
         Thread(target=self.receive).start()
     
     # module check function
@@ -236,7 +235,7 @@ class State(BaseState):
                 self.output_image(currentBackg)
 
                 self.calls += 1
-                if self.calls % self.fps == 0 and self.game.p1.conn and self.game.p2.conn:
+                if self.calls % 60 == 0 and self.game.p1.conn and self.game.p2.conn:
                     self.game.timer -= 1
                 
-                sleep(1 / self.fps)
+                sleep(.017)
