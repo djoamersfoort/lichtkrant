@@ -19,7 +19,7 @@ class State(BaseState):
         except requests.RequestException:
             return {}
         if not response.ok:
-            return {}
+            return response["error"]
         response = response.json()
         return response["djo"] # dict of keer gegamed per player
 
@@ -61,7 +61,7 @@ class State(BaseState):
                 if count == 0: continue # show no gamers with 0
 
                 draw.text((2, (i * 8 + 32) - scroll_y), user, fill="white", anchor="lm", font=font6)
-                draw.text((94, (i * 8 + 32) - scroll_y), count, fill=(0, 110, 210), anchor="rm", font=font6)
+                draw.text((94, (i * 8 + 32) - scroll_y), str(count), fill=(0, 110, 210), anchor="rm", font=font6)
 
             self.output_image(image)
             sleep(1)
