@@ -44,7 +44,6 @@ class State(BaseState):
     def run(self):
         scroll_y = 0
         font_path = "/usr/share/fonts/truetype/noto/NotoMono-Regular.ttf"
-        font6 = ImageFont.truetype(font_path, size=6)
         font8 = ImageFont.truetype(font_path, size=8)
         font10 = ImageFont.truetype(font_path, size=10)
 
@@ -55,13 +54,13 @@ class State(BaseState):
             draw = ImageDraw.Draw(image)
 
             draw.text((48, 11 - scroll_y), "N&M GAMES", fill=(30, 160, 230), anchor="mb", font=font10)
-            draw.text((48, 29 - scroll_y), "STATUS UPDATE", fill=(230, 30, 230), anchor="mb", font=font8)
+            draw.text((48, 22 - scroll_y), "GAMERS LIST", fill=(230, 30, 230), anchor="mb", font=font10)
             for i, user in enumerate(game_status):
                 count = game_status[user]
                 if count == 0: continue # show no gamers with 0
 
-                draw.text((2, (i * 8 + 32) - scroll_y), user, fill="white", anchor="lm", font=font6)
-                draw.text((94, (i * 8 + 32) - scroll_y), str(count), fill=(0, 110, 210), anchor="rm", font=font6)
+                draw.text((2, (i * 8 + 32) - scroll_y), user, fill="white", anchor="lm", font=font8)
+                draw.text((94, (i * 8 + 32) - scroll_y), "x" + str(count), fill=(0, 110, 210), anchor="rm", font=font8)
 
             self.output_image(image)
             sleep(1)
