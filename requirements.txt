@@ -2,3 +2,4 @@ argparse==1.4.0
 paho-mqtt==1.5.1
 pillow==9.0.1
 requests
+python-socketio[client]
