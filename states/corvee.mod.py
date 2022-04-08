@@ -50,7 +50,7 @@ class State(BaseState):
                 font = ImageFont.truetype(font_path, size=11)
                 for i in range(0, len(names)):
                     draw.text((48, 5 + 11 * i), names[i], fill=colors[i], anchor="mm", font=font)
-                while not self.killed:
+                for i in range(-100, 100):
                     draw.rectangle([(2, 2 + elapsed + i * 8), (8, 6 + elapsed + i * 8)], fill="blue")
                     draw.rectangle([(88, 2 + elapsed + i * 8), (94, 6 + elapsed + i * 8)], fill="blue")
 
