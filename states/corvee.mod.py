@@ -15,7 +15,7 @@ class State(BaseState):
     @staticmethod
     def get_names():
         try:
-            response = requests.get("http://localhost:3000/api/v1/selected")
+            response = requests.get("https://corvee.djoamersfoort.nl/api/v1/selected")
         except requests.exceptions.RequestException:
             return []
         if not response.ok:
