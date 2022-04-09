@@ -35,6 +35,7 @@ class State(BaseState):
             self.time += 1
             sleep(0.5)
         self.time = 0
+        self.sio.disconnect()
 
     def place(self, data):
         self.tiles = data["place"]
