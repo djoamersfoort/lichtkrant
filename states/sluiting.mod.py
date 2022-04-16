@@ -44,6 +44,8 @@ class State(BaseState):
 
     # module runner
     def run(self):
+        if self.on_pi: self.queue_song()
+
         while not self.killed:
             background = self.solar_system.copy()
             background.paste(self.solar_system, (-self.scroll_x, 0))
