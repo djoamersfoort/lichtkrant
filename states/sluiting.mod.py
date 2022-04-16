@@ -12,7 +12,10 @@ class State(BaseState):
     index = 9
     delay = 300
     scroll_x = 0
-    solar_system = Image.open("./static/planets.png").convert(mode="RGB")
+    solar_system = Image.open("./static/planets.png").resize(box=(0, 0, 96, 32), size=(96, 32)).convert(mode="RGB")
+    solar_system_2 = Image.open("./static/planets.png").resize(box=(96, 0, 192, 32), size=(96, 32)).convert(mode="RGB")
+    solar_system_3 = Image.open("./static/planets.png").resize(box=(192, 0, 288, 32), size=(96, 32)).convert(mode="RGB")
+    solar_system_4 = Image.open("./static/planets.png").resize(box=(288, 0, 384, 32), size=(96, 32)).convert(mode="RGB")    
 
     # requests data
     vol_uri = "http://music.djoamersfoort.nl/api/v1/commands/?cmd=volume&volume=50"
@@ -43,10 +46,13 @@ class State(BaseState):
     def run(self):
         while not self.killed:
             background = self.solar_system.copy()
-            background.paste(background, (-self.scroll_x, 0))
-            background.paste(background, (-self.scroll_x + background.width, 0))
+            background.paste(self.solar_system, (-self.scroll_x, 0))
+            background.paste(self.solar_system_2, (-self.scroll_x + 96, 0))
+            background.paste(self.solar_system_3, (-self.scroll_x + 192, 0))
+            background.paste(self.solar_system_4, (-self.scroll_x + 288, 0))
+            background.paste(self.solar_system, (-self.scroll_x + 384, 0))
             self.output_image(background)
-            sleep(1)
+            sleep(.1)
             self.scroll_x += 1
-            if self.scroll_x >= background.width - 96: self.scroll_x = 0
+            if self.scroll_x >= 384: self.scroll_x = 0
             
