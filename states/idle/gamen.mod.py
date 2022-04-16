@@ -4,83 +4,64 @@ from datetime import datetime
 from PIL import Image, ImageDraw, ImageFont
 import requests
 
-
 class State(BaseState):
     # module information
     name = "gamen"
     index = 0
     delay = 16
     check_elapsed = 0
+    last_status = {}
     
-    last_value = 0
-
     @staticmethod
     def get_response():
         try:
-            response = requests.get("https://nm-games.eu/media/djo-game-register.json")
+            response = requests.get("https://api.nm-games.eu/djo")
         except requests.RequestException:
-            return 0, []
+            return {}
         if not response.ok:
-            return 0, []
+            return response["error"]
         response = response.json()
-        return response["keer_gegamed"], response["wall_of_shame"]
+        return response["djo"] # dict of keer gegamed per player
 
     # module check function
     def check(self, _state):
         self.check_elapsed += 1
-        if self.check_elapsed % 10 != 0:
+        if self.check_elapsed % 15 != 0:
             return False
 
-        keer_gegamed, _ = self.get_response()
-        if keer_gegamed == self.last_value:
-            return False
+        game_status = self.get_response()
+        if game_status == self.last_status or len(game_status) == 0: return False
+            
+        now = datetime.now()
 
-        dt = datetime.now()
-        """
-        Zonder avondlockdown het onderstaande:
+        if now.weekday() == 4:  # friday
+            return now.hour < 21 or (now.hour == 21 and now.minute < 30)
+        elif now.weekday() == 5:  # saturday
+            return now.hour < 13
 
-        if dt.weekday() == 4:  # friday
-            return dt.hour < 21 or (dt.hour == 21 and dt.minute < 30)
-        elif dt.weekday() == 5:  # saturday
-            return dt.hour < 13
-        """
-        if dt.weekday() != 5:
-            return False
-        return (dt.hour < 12 or (dt.hour == 12 and dt.minute < 30)) or (dt.hour > 12 and dt.hour < 16)
+        return False
 
     def run(self):
-        elapsed = 0
+        scroll_y = 0
         font_path = "/usr/share/fonts/truetype/noto/NotoMono-Regular.ttf"
+        font8 = ImageFont.truetype(font_path, size=8)
+        font10 = ImageFont.truetype(font_path, size=10)
 
         while not self.killed:
-            keer_gegamed, wall_of_shame = self.get_response()
-            self.last_value = keer_gegamed
-            
-            keer_gegamed = str(keer_gegamed)
-
+            game_status = self.last_status = self.get_response()
+        
             image = Image.new("RGB", (96, 32), (0, 0, 50))
             draw = ImageDraw.Draw(image)
 
-            if elapsed < self.delay / 2:
-                fsize = 14 if len(keer_gegamed) >= 3 else 18
-                font = ImageFont.truetype(font_path, size=fsize)
-                draw.text((15, 16), keer_gegamed, fill="white", anchor="mm", font=font)
+            draw.text((48, 11 - scroll_y), "N&M GAMES", fill=(30, 160, 230), anchor="mb", font=font10)
+            draw.text((48, 22 - scroll_y), "GAMERS LIST", fill=(230, 30, 230), anchor="mb", font=font10)
+            for i, user in enumerate(game_status):
+                count = game_status[user]
+                if count == 0: continue # show no gamers with 0
 
-                font = ImageFont.truetype(font_path, size=8)
-                nm_games = "N&M Game" if keer_gegamed == "1" else "N&M Games"
-                before_time = "13:00!" if datetime.now().weekday() == 5 else "21:30!"
-                draw.text((63, 7), nm_games, fill="white", anchor="mm", font=font)
-                draw.text((63, 16), "gespeeld vóór", fill="white", anchor="mm", font=font)
-                draw.text((63, 25), before_time, fill="white", anchor="mm", font=font)
-            else:
-                font = ImageFont.truetype(font_path, size=12)
-                draw.text((49, 1), "WALL OF SHAME", fill=(230, 30, 230), anchor="mt", font=font)
-                font = ImageFont.truetype(font_path, size=7)
-                for i in range(0, len(wall_of_shame)):
-                    height = 17 if i % 2 == 0 else 26
-                    draw.text(((1 + i * 20) - (elapsed - self.delay / 2) * (len(wall_of_shame) - 1), height),
-                              wall_of_shame[i], fill="white", anchor="lm", font=font)
+                draw.text((2, (i * 8 + 32) - scroll_y), user, fill="white", anchor="lm", font=font8)
+                draw.text((94, (i * 8 + 32) - scroll_y), "x" + str(count), fill=(0, 110, 210), anchor="rm", font=font8)
 
             self.output_image(image)
             sleep(1)
-            elapsed += 1
+            scroll_y += len(game_status)

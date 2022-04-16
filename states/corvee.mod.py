@@ -50,9 +50,10 @@ class State(BaseState):
                 font = ImageFont.truetype(font_path, size=11)
                 for i in range(0, len(names)):
                     draw.text((48, 5 + 11 * i), names[i], fill=colors[i], anchor="mm", font=font)
-                for i in range(-100, 100):
-                    draw.rectangle([(2, 2 + elapsed + i * 8), (8, 6 + elapsed + i * 8)], fill="blue")
-                    draw.rectangle([(88, 2 + elapsed + i * 8), (94, 6 + elapsed + i * 8)], fill="blue")
+                for i in range(0, 6):
+                    y = (elapsed + i * 8) % 40
+                    draw.rectangle([(2, y - 8), (8, y - 4)], fill="blue")
+                    draw.rectangle([(88, y - 8), (94, y - 4)], fill="blue")
 
             elif elapsed >= 13:
                 font = ImageFont.truetype(font_path, size=28)
