@@ -2,6 +2,7 @@ from threading import Thread
 from sys import stdout
 from shutil import which
 from typing import List
+from PIL import Image
 
 
 class BaseState(Thread):
@@ -20,14 +21,14 @@ class BaseState(Thread):
     def check(self, space_state: dict) -> bool:
         return True
 
-    def output_image(self, pil_image) -> None:
+    def output_image(self, pil_image: Image) -> None:
         stdout.buffer.write(pil_image.tobytes())
 
-    def output_frame(self, frame) -> None:
+    def output_frame(self, frame: bytes) -> None:
         stdout.buffer.write(frame)
 
     @staticmethod
-    def text(text) -> List[List[int]]:
+    def text(text: str) -> List[List[int]]:
         chars = {
             "0": [[0, 1, 0], [1, 0, 1], [1, 0, 1], [1, 0, 1], [0, 1, 0]],
             "1": [[0, 1, 0], [1, 1, 0], [0, 1, 0], [0, 1, 0], [1, 1, 1]],
