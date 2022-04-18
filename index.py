@@ -48,18 +48,27 @@ class LichtKrant:
 
     def get_state(self, space_state):
         self.read_states()
-        
+
         # getting highest indexed state
         if self.args.module is not None:
-            try:
-                return [state for name, state in self.states.items() if name == args.module][0]
-            except IndexError:
+            state = self.states.get(args.module)
+            if state is None:
                 raise Exception('The module passed does not exist.')
+            return state
 
         # filter states
-        filtered_states = [state for name, state in self.states.items() if state.check(space_state)]
+        filtered_states = []
+        for name, state in self.states.items():
+            try:
+                if state.check(space_state):
+                    filtered_states.append(state)
+            except Exception as e:
+                # The state's check() method crashed -> ignore it
+                if self.args.dry:
+                    print(f"State module {name} check method crashed: {e}")
+                pass
 
-        # return random with highest index
+        # return a random state with the highest index
         random.shuffle(filtered_states)
 
         if len(filtered_states) == 0:
@@ -90,7 +99,6 @@ class LichtKrant:
 
                 if current_thread is not None:
                     self.kill_state(current_thread)
-                    sleep(1)  # sleep to reset outlining
 
                 if current_state is not None:
                     current_thread = self.run_state(current_state)
