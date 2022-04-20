@@ -9,6 +9,7 @@ class State(BaseState):
     name = "gamen"
     index = 0
     delay = 16
+    elapsed = 0
     check_elapsed = 0
     
     @staticmethod
@@ -47,7 +48,7 @@ class State(BaseState):
         font10 = ImageFont.truetype(font_path, size=10)
 
         while not self.killed:
-            game_status = self.get_response()
+            if self.elapsed % 5 == 0: game_status = self.get_response()
         
             image = Image.new("RGB", (96, 32), (0, 0, 50))
             draw = ImageDraw.Draw(image)
@@ -63,4 +64,5 @@ class State(BaseState):
 
             self.output_image(image)
             sleep(1)
+            self.elapsed += 1
             scroll_y += len(game_status)
