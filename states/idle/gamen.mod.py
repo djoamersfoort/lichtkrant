@@ -18,7 +18,7 @@ class State(BaseState):
         except requests.RequestException:
             return {}
         if not response.ok:
-            print("Oei: " + response["error"])
+            return {}
         response = response.json()
         return response["djo"] # dict of keer gegamed per player
 
