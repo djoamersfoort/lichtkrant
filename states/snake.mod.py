@@ -53,13 +53,16 @@ class Game:
         return False
 
     def turn(self, direction):
-        if direction == "w" and not self.direction == [0, 1]:
+        if not len(direction) == 4:
+            return
+
+        if direction[0] == "1" and not self.direction == [0, 1]:
             self.direction = [0, -1]
-        if direction == "a" and not self.direction == [1, 0]:
+        if direction[1] == "1" and not self.direction == [1, 0]:
             self.direction = [-1, 0]
-        if direction == "s" and not self.direction == [0, -1]:
+        if direction[2] == "1" and not self.direction == [0, -1]:
             self.direction = [0, 1]
-        if direction == "d" and not self.direction == [-1, 0]:
+        if direction[3] == "1" and not self.direction == [-1, 0]:
             self.direction = [1, 0]
 
     def update(self):
@@ -142,7 +145,7 @@ class State(BaseState):
         while not self.killed:
             data = b''
             try:
-                data = conn.recv(1)
+                data = conn.recv(4)
                 conn.send(b"_")
 
             except Exception:

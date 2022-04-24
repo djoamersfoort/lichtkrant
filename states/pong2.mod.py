@@ -183,13 +183,25 @@ class State(BaseState):
                 conn, addr = s.accept()
                 threading.Thread(target=self.msg, args=(conn, addr)).start()
 
+    def move(self, movement):
+        move = 0
+        if not len(movement) == 2:
+            return 0
+
+        if movement[0] == "1":
+            move -= 1
+        if movement[1] == "1":
+            move += 1
+
+        return move
+
     def msg(self, conn, _addr):
         player = None
         while not self.killed:
             data = b''
             if player:
                 try:
-                    data = conn.recv(1)
+                    data = conn.recv(2)
                     # It is required to send text to find dead connections,
                     # because 'recv' will happily continue without errors.
                     # We send back some dummy data to detect closed sockets,
@@ -213,11 +225,10 @@ class State(BaseState):
             # Otherwise no movement would be possible at all,
             # as real messages are frequently followed by an empty message.
             request = data.decode().strip()
-            movements = {"w": -1, "s": 1}
             if player == "1" and request:
-                self.game.p1.movement = movements.get(request, 0)
+                self.game.p1.movement = self.move(request)
             elif player == "2" and request:
-                self.game.p2.movement = movements.get(request, 0)
+                self.game.p2.movement = self.move(request)
             elif not self.game.p1.ishuman:
                 player = "1"
                 self.game.p1.ishuman = True
