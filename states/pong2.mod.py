@@ -232,12 +232,12 @@ class State(BaseState):
             # as real messages are frequently followed by an empty message.
             request = data.decode().strip()
             if player == "1" and request:
-                if len(request) == 7 and request.startswith("c"):
-                    self.game.p1.code = self.color(request.split("c")[1])
+                if len(request) == 7 and request.startswith("#"):
+                    self.game.p1.code = self.color(request.split("#")[1])
                 self.game.p1.movement = self.move(request)
             elif player == "2" and request:
-                if len(request) == 7 and request.startswith("c"):
-                    self.game.p2.code = self.color(request.split("c")[1])
+                if len(request) == 7 and request.startswith("#"):
+                    self.game.p2.code = self.color(request.split("#")[1])
                 self.game.p2.movement = self.move(request)
             elif not self.game.p1.ishuman:
                 player = "1"

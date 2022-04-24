@@ -163,6 +163,6 @@ class State(BaseState):
                 self.game = Game({"width": self.winw, "height": self.winh})
 
             request = data.decode().strip()
-            if len(request) == 7 and request.startswith("c"):
-                self.code = self.color(request.split("c")[1])
+            if len(request) == 7 and request.startswith("#"):
+                self.code = self.color(request.split("#")[1])
             self.game.turn(request)

@@ -200,10 +200,10 @@ class State(BaseState):
             if self.game.p1.conn is not conn and self.game.p2.conn is not conn:
                 if not self.game.p1.conn:
                     self.game.p1.conn = conn
-                    conn.send(b'cFFD900')
+                    conn.send(b'#FFD900')
                 elif not self.game.p2.conn:
                     self.game.p2.conn = conn
-                    conn.send(b'c00AE00')
+                    conn.send(b'#00AE00')
             request = data.decode().strip()
             if request:
                 if self.game.p1.conn == conn:
