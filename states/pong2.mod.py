@@ -69,6 +69,7 @@ class Player:
         self.limit = limit
         self.ishuman = False
         self.reset()
+        self.code = BLUE
 
     def reset(self):
         self.y = int((self.limit / 2) - self.height / 2)
@@ -84,7 +85,7 @@ class Player:
         if self.has_won:
             return GREEN
         if self.ishuman:
-            return BLUE
+            return self.code
         return WHITE
 
 
@@ -195,13 +196,18 @@ class State(BaseState):
 
         return move
 
+    def color(self, code):
+        r, g, b = tuple(int(code[i:i + 2], 16) for i in (0, 2, 4))
+
+        return [r, g, b]
+
     def msg(self, conn, _addr):
         player = None
         while not self.killed:
             data = b''
             if player:
                 try:
-                    data = conn.recv(2)
+                    data = conn.recv(7)
                     # It is required to send text to find dead connections,
                     # because 'recv' will happily continue without errors.
                     # We send back some dummy data to detect closed sockets,
@@ -226,8 +232,12 @@ class State(BaseState):
             # as real messages are frequently followed by an empty message.
             request = data.decode().strip()
             if player == "1" and request:
+                if len(request) == 7 and request.startswith("c"):
+                    self.game.p1.code = self.color(request.split("c")[1])
                 self.game.p1.movement = self.move(request)
             elif player == "2" and request:
+                if len(request) == 7 and request.startswith("c"):
+                    self.game.p2.code = self.color(request.split("c")[1])
                 self.game.p2.movement = self.move(request)
             elif not self.game.p1.ishuman:
                 player = "1"
