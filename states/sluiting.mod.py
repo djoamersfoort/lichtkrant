@@ -1,6 +1,7 @@
 import requests
-from PIL import Image, ImageDraw, ImageFont
+from PIL import Image
 from time import sleep
+from math import floor
 from datetime import datetime
 from states.base import BaseState
 
@@ -12,20 +13,14 @@ class State(BaseState):
     index = 9
     delay = 300
     scroll_x = 0
-    solar_system = Image.open("./static/planets.png").resize(box=(0, 0, 96, 32), size=(96, 32)).convert(mode="RGB")
-    solar_system_2 = Image.open("./static/planets.png").resize(box=(96, 0, 192, 32), size=(96, 32)).convert(mode="RGB")
-    solar_system_3 = Image.open("./static/planets.png").resize(box=(192, 0, 288, 32), size=(96, 32)).convert(mode="RGB")
-    solar_system_4 = Image.open("./static/planets.png").resize(box=(288, 0, 384, 32), size=(96, 32)).convert(mode="RGB")    
+    # planets.png image width MUST be dividable by 96, else module won't work!
+    solar_system_fragment_length = floor(Image.open("./static/planets.png").convert(mode="RGB").width / 96)
+    solar_systems = [Image.open("./static/planets.png").resize(box=(i * 96, 0, (i + 1) * 96, 32), size=(96, 32)).convert(mode="RGB") for i in range(solar_system_fragment_length)]
 
     # requests data
     vol_uri = "http://music.djoamersfoort.nl/api/v1/commands/?cmd=volume&volume=50"
-
     queue_uri = "http://music.djoamersfoort.nl/api/v1/replaceAndPlay"
-    queue_data = {
-        "item": {
-            "uri": "music-library/INTERNAL/DJO Sluiting.mp3"
-        }
-    }
+    queue_data = {"uri": "music-library/INTERNAL/DJO Sluiting.mp3"}
 
     # module check function
     def check(self, _state):
@@ -37,24 +32,24 @@ class State(BaseState):
             return now.hour == 13 and 25 <= now.minute < 30
 
     # start music
-    def queue_song(self, index):
+    def queue_song(self):
         requests.get(self.vol_uri)
         sleep(0.5)
-        requests.post(self.queue_uri, json=self.queue_data[index])
+        requests.post(self.queue_uri, json=self.queue_data)
 
     # module runner
     def run(self):
-        if self.on_pi: self.queue_song("item")
+        if self.on_pi:
+            try: self.queue_song()
+            except: pass
 
         while not self.killed:
             background = self.solar_system.copy()
-            background.paste(self.solar_system, (-self.scroll_x, 0))
-            background.paste(self.solar_system_2, (-self.scroll_x + 96, 0))
-            background.paste(self.solar_system_3, (-self.scroll_x + 192, 0))
-            background.paste(self.solar_system_4, (-self.scroll_x + 288, 0))
-            background.paste(self.solar_system, (-self.scroll_x + 384, 0))
+            for i, img in enumerate(self.solar_systems):
+                background.paste(img, (-self.scroll_x + i * 96, 0))
+            background.paste(self.solar_systems[0], (-self.scroll_x + len(self.solar_systems) * 96, 0))
             self.output_image(background)
             sleep(.1)
             self.scroll_x += 1
-            if self.scroll_x >= 384: self.scroll_x = 0
+            if self.scroll_x >= self.solar_system_fragment_length * 96: self.scroll_x = 0
             
