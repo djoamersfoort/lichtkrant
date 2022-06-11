@@ -10,8 +10,8 @@ class State(BaseState):
     name = "gamen"
     index = 0
     delay = 16
+    elapsed = 0
     check_elapsed = 0
-    last_status = {}
     
     @staticmethod
     def get_response():
@@ -20,7 +20,7 @@ class State(BaseState):
         except requests.RequestException:
             return {}
         if not response.ok:
-            return response["error"]
+            return {}
         response = response.json()
         return response["djo"] # dict of keer gegamed per player
 
@@ -31,7 +31,7 @@ class State(BaseState):
             return False
 
         game_status = self.get_response()
-        if game_status == self.last_status or len(game_status) == 0: return False
+        if len(game_status) == 0: return False
             
         now = datetime.now()
 
@@ -49,7 +49,7 @@ class State(BaseState):
         font10 = ImageFont.truetype(font_path, size=10)
 
         while not self.killed:
-            game_status = self.last_status = self.get_response()
+            if self.elapsed % 5 == 0: game_status = self.get_response()
         
             image = Image.new("RGB", (96, 32), (0, 0, 50))
             draw = ImageDraw.Draw(image)
@@ -65,4 +65,5 @@ class State(BaseState):
 
             self.output_image(image)
             sleep(1)
+            self.elapsed += 1
             scroll_y += len(game_status)

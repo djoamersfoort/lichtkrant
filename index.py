@@ -9,6 +9,8 @@ import time
 from os import path
 from time import sleep
 from glob import glob
+from typing import Optional, Any, List
+from states.base import BaseState
 
 
 class LichtKrant:
@@ -19,17 +21,17 @@ class LichtKrant:
         self.modules = None
         self.states = {}
 
-    def import_module(self, loc):
+    def import_module(self, loc: str) -> (Optional[Any], str):
         name = path.basename(loc).replace('.mod.py', '', -1)
         spec = importlib.util.spec_from_file_location(name, loc)
         module = spec.loader.load_module()
         return module, name
 
-    def read_modules(self, location):
+    def read_modules(self, location: str) -> List[Any]:
         # loading state modules
         return [self.import_module(file) for file in glob(location, recursive=self.args.recursive)]
 
-    def read_states(self):
+    def read_states(self) -> None:
         if self.modules is None:
             self.modules = self.read_modules(self.args.state_dir + '**/**/*.mod.py')
 
@@ -43,26 +45,35 @@ class LichtKrant:
                 state.name = name
                 self.states[name] = state
 
-    def kill_state(self, state):
+    def kill_state(self, state: BaseState) -> None:
         state.kill()
         state.join()
         # Remove the state, because Thread's can only be start()ed once
         del self.states[state.name]
 
-    def get_state(self, space_state):
+    def get_state(self, space_state: dict) -> Optional[BaseState]:
         self.read_states()
-        
+
         # getting highest indexed state
         if self.args.module is not None:
-            try:
-                return [state for name, state in self.states.items() if name == args.module][0]
-            except IndexError:
+            state = self.states.get(args.module)
+            if state is None:
                 raise Exception('The module passed does not exist.')
+            return state
 
         # filter states
-        filtered_states = [state for name, state in self.states.items() if state.check(space_state)]
+        filtered_states = []
+        for name, state in self.states.items():
+            try:
+                if state.check(space_state):
+                    filtered_states.append(state)
+            except Exception as e:
+                # The state's check() method crashed -> ignore it
+                if self.args.dry:
+                    print(f"State module {name} check method crashed: {e}")
+                pass
 
-        # return random with highest index
+        # return a random state with the highest index
         random.shuffle(filtered_states)
 
         if len(filtered_states) == 0:
@@ -70,7 +81,7 @@ class LichtKrant:
 
         return sorted(filtered_states, key=lambda s: s.index, reverse=True)[0]
 
-    def run_state(self, state):
+    def run_state(self, state: BaseState) -> Optional[BaseState]:
         # running states
         if self.args.dry:
             print(f"state: {state.name}")
@@ -79,7 +90,7 @@ class LichtKrant:
         state.start()
         return state
 
-    def state_loop(self):
+    def state_loop(self) -> None:
         # the state update loop
         current_state = None
         current_thread = None
@@ -93,7 +104,6 @@ class LichtKrant:
 
                 if current_thread is not None:
                     self.kill_state(current_thread)
-                    sleep(1)  # sleep to reset outlining
 
                 if current_state is not None:
                     current_thread = self.run_state(current_state)
@@ -116,11 +126,8 @@ class LichtKrant:
 
                 sleep(4)
 
-    def start(self):
-        try:
-            self.state_loop()
-        except KeyboardInterrupt:
-            pass  # no ugly error message
+    def start(self) -> None:
+        self.state_loop()
 
 
 if __name__ == '__main__':

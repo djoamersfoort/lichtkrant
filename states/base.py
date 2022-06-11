@@ -1,27 +1,34 @@
 from threading import Thread
 from sys import stdout
 from shutil import which
+from typing import List
+from PIL import Image
 
 
 class BaseState(Thread):
     name = "base"
+    delay = 10
+    index = 0
 
     def __init__(self):
         super().__init__()
         self.killed = False
         self.on_pi = which("rpi-update")
 
-    def kill(self):
+    def kill(self) -> None:
         self.killed = True
 
-    def output_image(self, pil_image):
+    def check(self, space_state: dict) -> bool:
+        return True
+
+    def output_image(self, pil_image: Image) -> None:
         stdout.buffer.write(pil_image.tobytes())
 
-    def output_frame(self, frame):
+    def output_frame(self, frame: bytes) -> None:
         stdout.buffer.write(frame)
 
     @staticmethod
-    def text(text):
+    def text(text: str) -> List[List[int]]:
         chars = {
             "0": [[0, 1, 0], [1, 0, 1], [1, 0, 1], [1, 0, 1], [0, 1, 0]],
             "1": [[0, 1, 0], [1, 1, 0], [0, 1, 0], [0, 1, 0], [1, 1, 1]],
@@ -73,7 +80,7 @@ class BaseState(Thread):
                     buffer[row_index].append(0)
         return buffer
 
-    def flatten(self, s):
+    def flatten(self, s: List) -> List:
         if s == []:
             return s
         if isinstance(s[0], list):

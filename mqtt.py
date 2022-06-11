@@ -11,7 +11,7 @@ topics = {
 states = {}
 
 
-def get_states():
+def get_states() -> dict:
     return states
 
 
@@ -20,7 +20,7 @@ def on_message(_client, _userdata, message):
     states[topic] = message.payload.decode('utf-8')
 
 
-def connect(online):
+def connect(online: bool):
     if online:
         client = mqtt.Client()
         client.connect('mqtt.bitlair.nl')  # no mqtt:// protocol needed
