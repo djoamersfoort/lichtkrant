@@ -146,7 +146,7 @@ class Game:
 
 
 class State(BaseState):
-    name = "tetris"
+    name = "pacman"
     index = 8
     delay = 5
     game = None
