@@ -29,6 +29,7 @@ class Game:
         self.enemies.append(Clyde(self, self.map["data"]["spawn"]))
 
         self.time = 0
+        self.lost = False
 
     def prepare(self):
         for y, row in enumerate(self.map["map"]):
@@ -60,8 +61,7 @@ class Game:
     def update(self, direction):
         # win check
         if self.food == 0:
-            self.draw.rectangle((0, 0, 96, 32), fill="black")
-            self.prepare()
+            self.lost = True
 
         if self.time - self.lastScatter == 140:
             for enemy in self.enemies:
@@ -142,7 +142,7 @@ class Game:
                     lost = True
 
         if lost:
-            self.__init__()
+            self.lost = True
 
 
 class State(BaseState):
@@ -165,6 +165,9 @@ class State(BaseState):
             if self.game:
                 self.game.update(self.direction)
                 self.output_image(self.game.image)
+
+                if self.game.lost:
+                    self.game = Game()
 
             sleep(0.05)
 
