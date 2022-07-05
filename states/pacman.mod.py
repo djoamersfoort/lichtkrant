@@ -37,7 +37,7 @@ class Game:
                 self.redraw(x, y)
 
     def redraw(self, x, y):
-        i = self.map["map"][y][x]
+        tile = self.map["map"][y][x]
         # 1 = wall
         # 2 = food
         # 3 = enemy spawn
@@ -45,16 +45,16 @@ class Game:
         # 5 = teleport
         # 6 = boost
 
-        if i == 0:
+        if tile == 0:
             self.draw.point((x, y), (0, 0, 0))
-        if i == 1:
+        if tile == 1:
             self.draw.point((x, y), (16, 43, 200))
-        if i == 2:
+        if tile == 2:
             self.food += 1
             self.draw.point((x, y), (150, 150, 150))
-        if i == 5:
+        if tile == 5:
             self.draw.point((x, y), (128, 0, 128))
-        if i == 6:
+        if tile == 6:
             self.draw.point((x, y), (1, 255, 255))
 
     def update(self, direction):
