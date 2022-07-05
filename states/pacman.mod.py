@@ -13,9 +13,8 @@ class Game:
         self.image = Image.new("RGB", (96, 32), "black")
         self.draw = ImageDraw.Draw(self.image)
         self.food = 0
-        f = open("./static/pacman_assets/map.json")
-        self.map = json.load(f)
-        f.close()
+        with open("./static/pacman_assets/map.json") as f:
+            self.map = json.load(f)
         self.direction = [1, 0]
         self.prepare()
         self.position = self.map["data"]["playerSpawn"]
