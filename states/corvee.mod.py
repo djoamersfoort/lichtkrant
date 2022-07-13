@@ -20,7 +20,7 @@ class State(BaseState):
             return []
         if not response.ok:
             return []
-        return response.json()["selected"]
+        return response.json()
 
     def is_selected(self, names, name):
         try:
