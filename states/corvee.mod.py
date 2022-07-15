@@ -14,6 +14,7 @@ class State(BaseState):
     # get corvee dashboard data
     @staticmethod
     def get_names():
+        return {"present": ["A","B","C","D"], "selected": ["A","B","C"]}
         try:
             response = requests.get("https://corvee.djoamersfoort.nl/api/v1/selected")
         except requests.exceptions.RequestException:
@@ -54,18 +55,19 @@ class State(BaseState):
             image = Image.new("RGB", (96, 32), (0, 0, 0))
             draw = ImageDraw.Draw(image)
             
-            if elapsed < 6:
+            if elapsed < 4:
                 draw.text((3, 2), "CORVEE", fill="white", anchor="lt", font=fonts["noto20"])
                 draw.text((92, 29), "tijd!", fill="white", anchor="rb", font=fonts["noto11"])
 
-                if blink_invert:
-                    image = ImageOps.invert(image)
-                blink_invert = not blink_invert
-            elif elapsed < 9:
+                if elapsed % 0.2 < 0.1:
+                    if blink_invert:
+                        image = ImageOps.invert(image)
+                    blink_invert = not blink_invert
+            elif elapsed < 7:
                 draw.text((48, 16), "Wie o wie...", fill="yellow", anchor="mm", font=fonts["noto11"])
-            elif elapsed < 12:
+            elif elapsed < 10:
                 draw.text((48, 16), "...zijn de winnaars\nvan vandaag?", fill="yellow", anchor="mm", font=fonts["noto8"])
-            elif elapsed < 15:
+            elif elapsed < 13:
                 draw.text((48, 16), "We zullen\nhet zien!", fill="yellow", anchor="mm", font=fonts["noto11"])
             elif len(names["selected"]) > 0:
                 for i, j in enumerate(names["present"]):
