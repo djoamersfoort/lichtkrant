@@ -8,13 +8,12 @@ import requests
 class State(BaseState):
     # module information
     name = "corvee"
-    index = 80
+    index = 8
     delay = 3600
 
     # get corvee dashboard data
     @staticmethod
     def get_names():
-        return {"present": ["A","B","C","D"], "selected": ["A","B","C"]}
         try:
             response = requests.get("https://corvee.djoamersfoort.nl/api/v1/selected")
         except requests.exceptions.RequestException:
