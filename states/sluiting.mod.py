@@ -18,9 +18,9 @@ class State(BaseState):
     solar_systems = [Image.open("./static/planets.png").resize(box=(i * 96, 0, (i + 1) * 96, 32), size=(96, 32)).convert(mode="RGB") for i in range(solar_system_fragment_length)]
 
     # requests data
-    vol_uri = "http://music.djoamersfoort.nl/api/v1/commands/?cmd=volume&volume=50"
-    queue_uri = "http://music.djoamersfoort.nl/api/v1/replaceAndPlay"
-    queue_data = {"uri": "music-library/INTERNAL/DJO Sluiting.mp3"}
+    queue_uri = "http://music.djoamersfoort.nl/mopidy/rpc"
+    queue_data = {"jsonrpc": "2.0", "id": 1, "method": "core.tracklist.add", "params": {"uris": ["local:track:nathan/DJO%20Sluiting.mp3"]}}
+
 
     # module check function
     def check(self, _state):
@@ -33,8 +33,8 @@ class State(BaseState):
 
     # start music
     def queue_song(self):
-        requests.get(self.vol_uri)
-        sleep(0.5)
+        response = requests.post(self.queue_uri, json=self.queue_data)
+        tlid = response.json()["result"][0]["tlid"]
         requests.post(self.queue_uri, json=self.queue_data)
 
     # module runner
@@ -44,7 +44,7 @@ class State(BaseState):
             except: pass
 
         while not self.killed:
-            background = self.solar_system.copy()
+            background = self.solar_systems[0].copy()
             for i, img in enumerate(self.solar_systems):
                 background.paste(img, (-self.scroll_x + i * 96, 0))
             background.paste(self.solar_systems[0], (-self.scroll_x + len(self.solar_systems) * 96, 0))
