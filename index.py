@@ -38,7 +38,10 @@ class LichtKrant:
         for module, name in self.modules:
             # Re-create any missing states (killed threads)
             if name not in self.states:
-                state = module.State()
+                try:
+                    state = module.State()
+                except Exception as ex:
+                    continue
                 state.name = name
                 self.states[name] = state
 

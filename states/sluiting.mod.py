@@ -35,7 +35,7 @@ class State(BaseState):
     def queue_song(self):
         response = requests.post(self.queue_uri, json=self.queue_data)
         tlid = response.json()["result"][0]["tlid"]
-        requests.post(self.queue_uri, json={"jsonrpc": "2.0", "id": 1, "method": "core.playback.play", "params": {"tlid": tlid}})
+        requests.post(self.queue_uri, json=self.queue_data)
 
     # module runner
     def run(self):

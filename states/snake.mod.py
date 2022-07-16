@@ -53,13 +53,16 @@ class Game:
         return False
 
     def turn(self, direction):
-        if direction == "w" and not self.direction == [0, 1]:
+        if not len(direction) == 4:
+            return
+
+        if direction[0] == "1" and not self.direction == [0, 1]:
             self.direction = [0, -1]
-        if direction == "a" and not self.direction == [1, 0]:
+        if direction[1] == "1" and not self.direction == [1, 0]:
             self.direction = [-1, 0]
-        if direction == "s" and not self.direction == [0, -1]:
+        if direction[2] == "1" and not self.direction == [0, -1]:
             self.direction = [0, 1]
-        if direction == "d" and not self.direction == [-1, 0]:
+        if direction[3] == "1" and not self.direction == [-1, 0]:
             self.direction = [1, 0]
 
     def update(self):
@@ -79,6 +82,7 @@ class State(BaseState):
     delay = 5
     game = None
     connections = 0
+    code = BLUE
 
     winw = 96
     winh = 32
@@ -109,13 +113,11 @@ class State(BaseState):
                         for x, pixel in enumerate(row):
                             if pixel:
                                 pixels[y + 1][x] = RED
-
-
                 else:
                     for pixel in self.game.apples:
                         pixels[pixel[1]][pixel[0]] = RED
                     for pixel in self.game.snake:
-                        pixels[pixel[1]][pixel[0]] = BLUE
+                        pixels[pixel[1]][pixel[0]] = self.code
 
                 self.output_frame(bytes(self.flatten(pixels)))
                 if self.game.dead:
@@ -137,12 +139,17 @@ class State(BaseState):
                 conn, addr = s.accept()
                 threading.Thread(target=self.msg, args=(conn, addr)).start()
 
+    def color(self, code):
+        r, g, b = tuple(int(code[i:i + 2], 16) for i in (0, 2, 4))
+
+        return [r, g, b]
+
     def msg(self, conn, _addr):
         self.connections += 1
         while not self.killed:
             data = b''
             try:
-                data = conn.recv(1)
+                data = conn.recv(7)
                 conn.send(b"_")
 
             except Exception:
@@ -156,4 +163,6 @@ class State(BaseState):
                 self.game = Game({"width": self.winw, "height": self.winh})
 
             request = data.decode().strip()
+            if len(request) == 7 and request.startswith("#"):
+                self.code = self.color(request.split("#")[1])
             self.game.turn(request)
