@@ -98,7 +98,7 @@ class State(BaseState):
                     draw.text((48, 5 + 11 * i), chosen[i], fill=colors[i], anchor="mm", font=fonts["noto11"])
                 for i in range(0, 6):
                     y = (elapsed + i * 8) % 40
-                    draw.rectangle([(2, y - 8), (7, y - 4)], fill="blue")
+                    draw.rectangle([(1, y - 8), (6, y - 4)], fill="blue")
                     draw.rectangle([(89, y - 8), (94, y - 4)], fill="blue")
       
             self.output_image(image)
