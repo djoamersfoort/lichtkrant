@@ -7,9 +7,10 @@ class State(BaseState):
     # module information
     name = "dictee"
     index = 7
-    delay = 10
+    delay = 30
     show_time = 7 # time every result is displayed on-screen, including slide animation
-    elapsed = check_elapsed = 0
+    results = []
+    elapsed = 0
 
     # get dictee data
     @staticmethod
@@ -23,11 +24,8 @@ class State(BaseState):
         return response.json()
 
     def check(self, _state):
-        self.check_elapsed += 1
-        if self.check_elapsed % 15 != 0: return False
-
-        results = self.get_results()
-        return len(results) > 0 and self.elapsed <= len(results) * self.show_time
+        self.results = self.get_results()
+        return len(self.results) > 0
 
     def run(self):
         scroll_x = 0
@@ -39,12 +37,11 @@ class State(BaseState):
         }
 
         while not self.killed:
-            if self.elapsed % 5 == 0: results = self.get_results()
             image = Image.new("RGB", (96, 32), "black")
             draw = ImageDraw.Draw(image)
             draw.rectangle([(0, 0), (96, 9)], fill=(89, 49, 150))
             draw.text((48, 1), "UITSLAG DICTEE", fill="white", anchor="mt", font=fonts["font11"])
-            for i, res in enumerate(results):
+            for i, res in enumerate(self.results):
                 draw.text((2 + i * 96 - scroll_x, 12), res["name"], fill="white", anchor="lt", font=fonts["font11"])
                 draw.text((2 + i * 96 - scroll_x, 23), str(res["score"]) + "/" + str(res["total"]), fill=(200, 200, 200), anchor="lt", font=fonts["font9"])
                 
@@ -54,9 +51,9 @@ class State(BaseState):
 
             self.output_image(image)
             self.elapsed += 0.2
-            if self.elapsed % self.show_time >= (self.show_time - 1) and len(results) > 1:
+            if self.elapsed % self.show_time >= (self.show_time - 1) and len(self.results) > 1:
                 # round() to prevent addition glitches
                 scroll_x = round(scroll_x + (96 / 5), 1)
-                if scroll_x >= len(results) * 96: scroll_x = 0
+                if scroll_x >= len(self.results) * 96: scroll_x = 0
         
             sleep(0.2)
