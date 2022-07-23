@@ -10,6 +10,7 @@ class State(BaseState):
     name = "gamen"
     index = 0
     delay = 16
+    gamers = {}
     elapsed = 0
     check_elapsed = 0
     
@@ -27,11 +28,10 @@ class State(BaseState):
     # module check function
     def check(self, _state):
         self.check_elapsed += 1
-        if self.check_elapsed % 15 != 0:
-            return False
+        if self.check_elapsed % 15 == 0:
+            self.gamers = self.get_response()
 
-        game_status = self.get_response()
-        if len(game_status) == 0: return False
+        if len(self.gamers) == 0: return False
             
         now = datetime.now()
 
@@ -49,15 +49,13 @@ class State(BaseState):
         font10 = ImageFont.truetype(font_path, size=10)
 
         while not self.killed:
-            if self.elapsed % 5 == 0: game_status = self.get_response()
-        
             image = Image.new("RGB", (96, 32), (0, 0, 50))
             draw = ImageDraw.Draw(image)
 
             draw.text((48, 11 - scroll_y), "N&M GAMES", fill=(30, 160, 230), anchor="mb", font=font10)
             draw.text((48, 22 - scroll_y), "GAMERS LIST", fill=(230, 30, 230), anchor="mb", font=font10)
-            for i, user in enumerate(game_status):
-                count = game_status[user]
+            for i, user in enumerate(self.gamers):
+                count = self.gamers[user]
                 if count == 0: continue # show no gamers with 0
 
                 draw.text((2, (i * 8 + 32) - scroll_y), user, fill="white", anchor="lm", font=font8)
@@ -66,4 +64,4 @@ class State(BaseState):
             self.output_image(image)
             sleep(1)
             self.elapsed += 1
-            scroll_y += len(game_status)
+            scroll_y += len(self.gamers)
