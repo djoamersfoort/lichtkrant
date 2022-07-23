@@ -5,6 +5,9 @@ import argparse
 import random
 import mqtt
 import time
+import socket
+import threading
+import hashlib
 
 from os import path
 from time import sleep
@@ -20,7 +23,38 @@ class LichtKrant:
         mqtt.connect(not args.offline)
         self.modules = None
         self.states = {}
-
+    def handle_conn(self,conn,addr):
+        try:
+            while True:
+                conn.sendall(f"enter target game, options are {list(self.states.keys())}:".encode())
+                response = conn.recv(1024).decode().strip()
+                if response in self.states:
+                    break
+                conn.sendall(f'{response} is not a game\n\r'.encode())
+        except Exception:
+            raise
+        #print(f"got {response} client")
+        hasher = hashlib.sha256()
+        hasher.update((addr[0]+str(addr[1])).encode())
+        uuid = hasher.hexdigest()
+        self.states[response].add_player(uuid)
+        while True:
+            data = conn.recv(1024)
+            if not data:
+                self.states[response].remove_player(uuid)
+                break
+            self.states[response].got_data(uuid,data.strip().decode())
+    def socket_loop(self):
+        while True:
+            conn,addr = self.socket.accept()
+            threading.Thread(target=self.handle_conn,args=(conn,addr)).start()
+    def socket_setup(self):
+        self.socket = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
+        self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
+        self.socket.bind(('',8000))
+        self.socket.listen()
+        threading.Thread(target=self.socket_loop).start()
     def import_module(self, loc: str) -> (Optional[Any], str):
         name = path.basename(loc).replace('.mod.py', '', -1)
         spec = importlib.util.spec_from_file_location(name, loc)
@@ -127,6 +161,7 @@ class LichtKrant:
                 sleep(4)
 
     def start(self) -> None:
+        self.socket_setup()
         self.state_loop()
 
 

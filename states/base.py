@@ -15,6 +15,15 @@ class BaseState(Thread):
         self.killed = False
         self.on_pi = which("rpi-update")
 
+    def add_player(self,player):
+        pass
+
+    def remove_player(self,player):
+        pass
+
+    def got_data(self,player,data):
+        pass
+
     def kill(self) -> None:
         self.killed = True
 

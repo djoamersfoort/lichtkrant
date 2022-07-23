@@ -69,6 +69,7 @@ class Player:
         self.limit = limit
         self.ishuman = False
         self.reset()
+        self.UUID = ''
         self.code = BLUE
 
     def reset(self):
@@ -114,13 +115,11 @@ class State(BaseState):
     index = 7
     delay = 5
     game = None
-
     winw = 96
     winh = 32
 
     def __init__(self):
         super().__init__()
-        threading.Thread(target=self.receive).start()
 
     def check(self, _state):
         return self.game
@@ -149,10 +148,9 @@ class State(BaseState):
                     if y % 2 == 0:
                         pixels[y][int(self.winw / 2)] = WHITE
                 scores = [
-                    {
-                        "score": str(self.game.p1.score),
-                        "color": GREEN if self.game.p1.has_won else WHITE,
-                        "center": round(self.game.dims["width"] / 4 - 1)
+                    { "score": str(self.game.p1.score),
+                      "color": GREEN if self.game.p1.has_won else WHITE,
+                      "center": round(self.game.dims["width"] / 4 - 1)
                     },
                     {
                         "score": str(self.game.p2.score),
@@ -174,15 +172,6 @@ class State(BaseState):
                     time_delta = time_start - time_end
                     sleep(max(0.04-time_delta, 0))
 
-    def receive(self):
-        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-            s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-            s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
-            s.bind(("0.0.0.0", 9999))
-            s.listen()
-            while not self.killed:
-                conn, addr = s.accept()
-                threading.Thread(target=self.msg, args=(conn, addr)).start()
 
     def move(self, movement):
         move = 0
@@ -200,52 +189,39 @@ class State(BaseState):
         r, g, b = tuple(int(code[i:i + 2], 16) for i in (0, 2, 4))
 
         return [r, g, b]
-
-    def msg(self, conn, _addr):
-        player = None
-        while not self.killed:
-            data = b''
-            if player:
-                try:
-                    data = conn.recv(7)
-                    # It is required to send text to find dead connections,
-                    # because 'recv' will happily continue without errors.
-                    # We send back some dummy data to detect closed sockets,
-                    # because empty strings are not enough or even send at all.
-                    # tldr: I kind of hate sockets now >.<
-                    conn.send(b"_")
-                except Exception:
-                    if player == "1":
-                        self.game.p1.ishuman = False
-                        self.game.reset()
-                    if player == "2":
-                        self.game.p2.ishuman = False
-                        self.game.reset()
-                    if not self.game.p1.ishuman and not self.game.p2.ishuman:
-                        self.game = None
-                    break
-            if not self.game:
-                self.game = Game({"width": self.winw, "height": self.winh})
+    def add_player(self,player):
+        if not self.game:
+            self.game = Game({"width": self.winw, "height": self.winh})
+        if self.game.p1.UUID == '':
+            self.game.p1.ishuman = True
+            self.game.p1.UUID = player
+            self.game.reset()
+        elif self.game.p2.UUID == '':
+            self.game.p2.ishuman = True
+            self.game.p2.UUID = player
+            self.game.reset()
+    def remove_player(self,player):
+        if self.game.p1.UUID == player:
+            self.game.p1.UUID = ''
+            self.game.p1.ishuman = False
+            self.game.reset()
+        if self.game.p2.UUID == player:
+            self.game.p2.UUID = ''
+            self.game.p2.ishuman = False
+            self.game.reset()
+        if not self.game.p1.ishuman and not self.game.p2.ishuman:
+            self.game = None
+            return
+    def got_data(self, player, data):
             # We strip the data and then check if it contains any data.
             # This is done to reset the movement only when new keys are send.
             # Otherwise no movement would be possible at all,
             # as real messages are frequently followed by an empty message.
-            request = data.decode().strip()
-            if player == "1" and request:
-                if len(request) == 7 and request.startswith("#"):
-                    self.game.p1.code = self.color(request.split("#")[1])
-                self.game.p1.movement = self.move(request)
-            elif player == "2" and request:
-                if len(request) == 7 and request.startswith("#"):
-                    self.game.p2.code = self.color(request.split("#")[1])
-                self.game.p2.movement = self.move(request)
-            elif not self.game.p1.ishuman:
-                player = "1"
-                self.game.p1.ishuman = True
-                if self.game.p2.ishuman:
-                    self.game.reset()
-            elif not self.game.p2.ishuman:
-                player = "2"
-                self.game.p2.ishuman = True
-                if self.game.p1.ishuman:
-                    self.game.reset()
+            if player == self.game.p1.UUID and data:
+                if len(data) == 7 and data.startswith("#"):
+                    self.game.p1.code = self.color(data.split("#")[1])
+                self.game.p1.movement = self.move(data)
+            elif player == self.game.p2.UUID and data:
+                if len(data) == 7 and data.startswith("#"):
+                    self.game.p2.code = self.color(data.split("#")[1])
+                self.game.p2.movement = self.move(data)
