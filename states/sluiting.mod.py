@@ -1,5 +1,5 @@
 import requests
-from PIL import Image, ImageFont, ImageDraw
+from PIL import Image
 from time import sleep
 from math import floor
 from datetime import datetime
@@ -49,15 +49,12 @@ class State(BaseState):
         if self.on_pi:
             try: self.queue_song()
             except: pass
-        font = ImageFont.truetype("/usr/share/fonts/truetype/noto/NotoMono-Regular.ttf")
         while not self.killed:
             background = self.solar_systems[0].copy()
-            draw = ImageDraw.Draw(background)
 
             for i, img in enumerate(self.solar_systems):
                 background.paste(img, (-self.scroll_x + i * 96, 0))
             background.paste(self.solar_systems[0], (-self.scroll_x + len(self.solar_systems) * 96, 0))
-            draw.text((95, 31), str(self.elapsed), fill="white", anchor="rb", font=font)
             self.output_image(background)
             sleep(.1)
             self.scroll_x += 1
