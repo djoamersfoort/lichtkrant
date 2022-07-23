@@ -51,7 +51,6 @@ class State(BaseState):
             except: pass
         while not self.killed:
             background = self.solar_systems[0].copy()
-
             for i, img in enumerate(self.solar_systems):
                 background.paste(img, (-self.scroll_x + i * 96, 0))
             background.paste(self.solar_systems[0], (-self.scroll_x + len(self.solar_systems) * 96, 0))
