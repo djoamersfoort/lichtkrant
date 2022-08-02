@@ -22,14 +22,6 @@ class State(BaseState):
             return []
         return response.json()
 
-    def is_selected(self, names, name):
-        try:
-            index = names.index(name) + 1 # output always true, even at index 0
-        except ValueError:
-            index = False
-        return bool(index)
-
-
     # module check function
     def check(self, _state):
         return len(self.get_names()) > 0
@@ -83,7 +75,7 @@ class State(BaseState):
                     if center_index == len(names["present"]): center_index = 0
 
                     centered = names["present"][center_index]
-                    if self.is_selected(names["selected"], centered):
+                    if centered in names["selected"]:
                         scroll_speed = 0
                         image = ImageOps.solarize(image, threshold=20)
                         sleep(5)
