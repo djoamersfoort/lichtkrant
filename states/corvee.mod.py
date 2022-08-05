@@ -1,9 +1,12 @@
-from PIL import Image, ImageDraw, ImageFont, ImageOps
-from time import sleep
-from states.base import BaseState
-from random import randint
 from math import floor
+from random import randint
+from time import sleep
+
 import requests
+from PIL import Image, ImageDraw, ImageFont, ImageOps
+
+from states.base import BaseState
+
 
 class State(BaseState):
     # module information
@@ -17,14 +20,15 @@ class State(BaseState):
         try:
             response = requests.get("https://corvee.djoamersfoort.nl/api/v1/selected")
         except requests.exceptions.RequestException:
-            return []
+            return {}
         if not response.ok:
-            return []
+            return {}
         return response.json()
 
     # module check function
     def check(self, _state):
-        return len(self.get_names()) > 0
+        names = self.get_names()
+        return "selected" in names and len(names["selected"]) > 0
 
     # runner function
     def run(self):
@@ -76,7 +80,6 @@ class State(BaseState):
 
                     centered = names["present"][center_index]
                     if centered in names["selected"]:
-                        scroll_speed = 0
                         image = ImageOps.solarize(image, threshold=20)
                         sleep(5)
                         image = ImageOps.solarize(image, threshold=-20)
