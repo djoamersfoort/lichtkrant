@@ -10,7 +10,7 @@ DIMENSIONS = (96, 32)
 
 
 class Player:
-    def __init__(self, conn, addr):
+    def __init__(self, conn, addr, state):
         self.conn = conn
         self.addr = addr
         self.active = True
@@ -20,6 +20,7 @@ class Player:
         self.elements = [(DIMENSIONS[0] / 2, DIMENSIONS[1] / 2), (DIMENSIONS[0] / 2, DIMENSIONS[1] - 1)]
         self.size = 2
         self.dead = False
+        self.state = state
         threading.Thread(target=self.msg).start()
 
     def reset(self):
@@ -50,7 +51,7 @@ class Player:
             self.direction = (1, 0)
 
     def msg(self):
-        while self.active:
+        while self.active and not self.state.killed:
             data = b''
             try:
                 data = self.conn.recv(7)
@@ -102,10 +103,11 @@ class Apple:
 
 
 class Game:
-    def __init__(self):
+    def __init__(self, state):
         self.players = []
         self.apples = []
         self.bodies = []
+        self.state = state
         threading.Thread(target=self.receive).start()
 
     @staticmethod
@@ -164,9 +166,9 @@ class Game:
             s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
             s.bind(("0.0.0.0", 1029))
             s.listen()
-            while True:
+            while not self.state.killed:
                 conn, addr = s.accept()
-                player = Player(conn, addr)
+                player = Player(conn, addr, self.state)
                 self.players.append(player)
                 self.apples.append(Apple())
 
@@ -177,7 +179,7 @@ class State(BaseState):
         self.name = "snake"
         self.index = 8
         self.delay = 5
-        self.game = Game()
+        self.game = Game(self)
 
     def check(self, _state):
         return len(self.game.players) > 0
