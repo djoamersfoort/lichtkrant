@@ -1,54 +1,39 @@
 import threading
 import socket
 from time import sleep, time
+from PIL import Image, ImageDraw, ImageFont, ImageColor
 from random import randrange
 
 from states.base import BaseState
 
-BLUE = [0, 0, 255]
-RED = [255, 0, 0]
+DIMENSIONS = (96, 32)
 
-class Game: 
-    def __init__(self, dims):
-        self.dims = dims
-        h = self.dims["height"]
-        w = self.dims["width"]
-        self.reset()
-        
+
+class Player:
+    def __init__(self, conn, addr, state):
+        self.conn = conn
+        self.addr = addr
+        self.active = True
+        self.color = "FFFFFF"
+        self.direction = (0, 1)
+        self.position = (0, 0)
+        self.elements = [(DIMENSIONS[0] / 2, DIMENSIONS[1] / 2), (DIMENSIONS[0] / 2, DIMENSIONS[1] - 1)]
+        self.size = 2
+        self.dead = False
+        self.state = state
+        threading.Thread(target=self.msg).start()
 
     def reset(self):
-        self.snake = [[int(self.dims["width"] / 2), int(self.dims["height"] / 2)], [int(self.dims["width"] / 2), int(self.dims["height"] / 2 - 1)]]
-        self.apples = []
-        self.addApple()
-        self.addApple()
-        self.addApple()
-        self.direction = [0, -1]
-        self.slowness = 3
-        self.count = 0
+        self.direction = (0, 1)
+        self.elements = [(DIMENSIONS[0] / 2, DIMENSIONS[1] / 2), (DIMENSIONS[0] / 2, DIMENSIONS[1] / 2 - 1)]
+        self.size = 2
         self.dead = False
 
-    def addApple(self):
-        self.apples.append([randrange(self.dims["width"]), randrange(self.dims["height"])])
-
     def checkDeath(self):
-        for index, pixel in enumerate(self.snake): 
-            if self.snake[0] == pixel and not index == 0:
-                return True
-
-        if self.snake[0][0] < 0 or self.snake[0][0] >= self.dims["width"] or self.snake[0][1] < 0 or self.snake[0][1] >= self.dims["height"]:
+        if self.elements[0][0] <= 0 or self.elements[0][1] <= 0:
             return True
-
-        return False
-
-    def checkApple(self):
-        for index, apple in enumerate(self.apples):
-            if self.snake[0] == apple: 
-                self.addApple()
-                self.apples.remove(apple)
-
-                if self.slowness > 0:
-                    self.slowness -= 0.11
-                return True
+        if self.elements[0][0] >= DIMENSIONS[0] - 1 or self.elements[0][1] >= DIMENSIONS[1] - 1:
+            return True
 
         return False
 
@@ -56,78 +41,124 @@ class Game:
         if not len(direction) == 4:
             return
 
-        if direction[0] == "1" and not self.direction == [0, 1]:
-            self.direction = [0, -1]
-        if direction[1] == "1" and not self.direction == [1, 0]:
-            self.direction = [-1, 0]
-        if direction[2] == "1" and not self.direction == [0, -1]:
-            self.direction = [0, 1]
-        if direction[3] == "1" and not self.direction == [-1, 0]:
-            self.direction = [1, 0]
+        if direction[0] == "1" and not self.direction == (0, 1):
+            self.direction = (0, -1)
+        if direction[1] == "1" and not self.direction == (1, 0):
+            self.direction = (-1, 0)
+        if direction[2] == "1" and not self.direction == (0, -1):
+            self.direction = (0, 1)
+        if direction[3] == "1" and not self.direction == (-1, 0):
+            self.direction = (1, 0)
+
+    def msg(self):
+        while self.active and not self.state.killed:
+            data = b''
+            try:
+                data = self.conn.recv(7)
+                self.conn.send(b'')
+            except Exception:
+                self.active = False
+
+            request = data.decode().strip()
+            if len(request) == 7 and request.startswith("#"):
+                self.color = request.lstrip("#")
+            self.turn(request)
+
+    def newPos(self):
+        return self.elements[0][0] + self.direction[0], self.elements[0][1] + self.direction[1]
 
     def update(self):
-        if self.count == int(self.slowness):
-            if not self.checkApple():
-                self.snake.pop()
-            self.snake.insert(0, [self.snake[0][0] + self.direction[0], self.snake[0][1] + self.direction[1]])
+        if self.size <= len(self.elements):
+            self.elements.pop()
+        if self.size >= len(self.elements):
+            self.elements.insert(0, self.newPos())
 
-            self.dead = self.checkDeath()
-            self.count = -1
-        self.count += 1
-        
+        self.dead = self.checkDeath()
 
-class State(BaseState):
-    name = "Snake"
-    index = 7
-    delay = 5
-    game = None
-    connections = 0
-    code = BLUE
 
-    winw = 96
-    winh = 32
+class Body:
+    def __init__(self, color, elements):
+        self.color = color
+        self.elements = elements
+        self.opacity = 1
 
+    @staticmethod
+    def sub(current):
+        new = current - 1
+        if new < 0:
+            new = 0
+        return new
+
+    def fade(self):
+        self.color = (self.sub(self.color[0]), self.sub(self.color[1]), self.sub(self.color[2]))
+
+
+class Apple:
     def __init__(self):
-        super().__init__()
+        self.location = (0, 0)
+        self.newLoc()
+
+    def newLoc(self):
+        self.location = (randrange(1, DIMENSIONS[0] - 2), randrange(1, DIMENSIONS[1] - 2))
+
+
+class Game:
+    def __init__(self, state):
+        self.players = []
+        self.apples = []
+        self.bodies = []
+        self.state = state
         threading.Thread(target=self.receive).start()
 
-    def check(self, _state):
-        return self.game
+    @staticmethod
+    def hex_to_rgb(code):
+        return tuple(int(code[i:i + 2], 16) for i in (0, 2, 4))
 
-    def run(self):
-        while not self.killed:
-            if self.game:
-                if not self.on_pi:
-                    time_start = time()
-                
-                self.game.update()
+    def update(self, tick):
+        for player in self.players:
+            if not player.active:
+                continue
+            speed = 30 - round(len(player.elements) / 2)
+            if speed < 5:
+                speed = 5
 
-                pixels = []
-                for _ in range(self.winh):
-                    pixels.append([])
-                    for _ in range(self.winw):
-                        pixels[-1].append([0, 0, 0])
+            if tick % speed == 0:
+                player.update()
+                for p2 in self.players:
+                    for index, element in enumerate(p2.elements):
+                        if p2 == player and index == 0:
+                            continue
+                        if element == player.elements[0]:
+                            player.dead = True
 
-                if self.game.dead:
-                    for y, row in enumerate(self.text("game over!")):
-                        for x, pixel in enumerate(row):
-                            if pixel:
-                                pixels[y + 1][x] = RED
-                else:
-                    for pixel in self.game.apples:
-                        pixels[pixel[1]][pixel[0]] = RED
-                    for pixel in self.game.snake:
-                        pixels[pixel[1]][pixel[0]] = self.code
+                if player.dead:
+                    self.bodies.append(Body(self.hex_to_rgb(player.color), player.elements))
+                    player.reset()
 
-                self.output_frame(bytes(self.flatten(pixels)))
-                if self.game.dead:
-                    sleep(2)
-                    self.game.reset()
+            for apple in self.apples:
+                if player.elements[0] == apple.location:
+                    player.size += 1
+                    apple.newLoc()
 
-                if not self.on_pi:
-                    time_end = time()
-                    time_delta = time_start - time_end
-                    sleep(max(0.04-time_delta, 0))
+        for body in self.bodies:
+            body.fade()
+
+    def export(self):
+        image = Image.new("RGB", DIMENSIONS, "black")
+        draw = ImageDraw.Draw(image)
+        for body in self.bodies:
+            for element in body.elements:
+                draw.point(element, fill=body.color)
+        for player in self.players:
+            if not player.active:
+                continue
+            for element in player.elements:
+                draw.point(element, fill=self.hex_to_rgb(player.color))
+        for apple in self.apples:
+            draw.point(apple.location, fill=(255, 0, 0))
+        draw.rectangle([(0, 0), (DIMENSIONS[0] - 1, DIMENSIONS[1] - 1)], outline=(250, 128, 114))
+
+        return image
 
     def receive(self):
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
@@ -135,34 +166,29 @@ class State(BaseState):
             s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
             s.bind(("0.0.0.0", 1029))
             s.listen()
-            while not self.killed:
+            while not self.state.killed:
                 conn, addr = s.accept()
-                threading.Thread(target=self.msg, args=(conn, addr)).start()
+                player = Player(conn, addr, self.state)
+                self.players.append(player)
+                self.apples.append(Apple())
 
-    def color(self, code):
-        r, g, b = tuple(int(code[i:i + 2], 16) for i in (0, 2, 4))
 
-        return [r, g, b]
+class State(BaseState):
+    def __init__(self):
+        super().__init__()
+        self.name = "snake"
+        self.index = 8
+        self.delay = 5
+        self.game = Game(self)
 
-    def msg(self, conn, _addr):
-        self.connections += 1
+    def check(self, _state):
+        return len(self.game.players) > 0
+
+    def run(self):
+        tick = 0
         while not self.killed:
-            data = b''
-            try:
-                data = conn.recv(7)
-                conn.send(b"_")
+            tick += 1
+            self.game.update(tick)
+            self.output_image(self.game.export())
 
-            except Exception:
-                self.connections -= 1
-                if self.connections == 0:
-                    self.game = None
-
-                break
-            
-            if not self.game:
-                self.game = Game({"width": self.winw, "height": self.winh})
-
-            request = data.decode().strip()
-            if len(request) == 7 and request.startswith("#"):
-                self.code = self.color(request.split("#")[1])
-            self.game.turn(request)
+            sleep(0.01)
