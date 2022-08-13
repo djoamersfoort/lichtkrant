@@ -12,7 +12,6 @@ class State(BaseState):
     name = "sluiting"
     index = 9
     delay = 300
-    elapsed = 0
     scroll_x = 0
     # planets.png image width MUST be dividable by 96, else module won't work!
     solar_system_fragment_length = floor(Image.open("./static/planets.png").convert(mode="RGB").width / 96)
@@ -20,7 +19,7 @@ class State(BaseState):
 
     # requests data
     queue_uri = "http://music.djoamersfoort.nl/mopidy/rpc"
-    queue_data = {"jsonrpc": "2.0", "id": 1, "method": "core.tracklist.add", "params": {"uris": ["local:track:nathan/DJO%20Sluiting.mp3"]}}
+    queue_data = {"jsonrpc": "2.0", "id": 1, "method": "core.tracklist.add", "params": {"uris": ["local:track:nathan/afsluiting.mp3"]}}
 
 
     # module check function
@@ -34,15 +33,10 @@ class State(BaseState):
 
     # start music
     def queue_song(self):
-        # set volume to max to make it hearable
-        requests.post(self.queue_uri, json={"jsonrpc": "2.0", "id": 1, "method": "core.mixer.set_volume", "params": {"volume": 100}})
         # get tlid and play sluiting track
         response = requests.post(self.queue_uri, json=self.queue_data)
         tlid = response.json()["result"][0]["tlid"]
         requests.post(self.queue_uri, json={"jsonrpc": "2.0", "id": 1, "method": "core.playback.play", "params": {"tlid": tlid}})
-
-    def reset_volume(self):
-        requests.post(self.queue_uri, json={"jsonrpc": "2.0", "id": 1, "method": "core.mixer.set_volume", "params": {"volume": 35}})
 
     # module runner
     def run(self):
@@ -58,6 +52,3 @@ class State(BaseState):
             sleep(.1)
             self.scroll_x += 1
             if self.scroll_x >= self.solar_system_fragment_length * 96: self.scroll_x = 0
-            
-            self.elapsed = round(self.elapsed + 0.1, 1)
-            if self.elapsed == 245: self.reset_volume() # 245 = 300 seconds in lichtkrant pace
