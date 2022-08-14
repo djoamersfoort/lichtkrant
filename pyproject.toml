@@ -1,0 +1,16 @@
+
+
+[tool.pylint]
+max-line-length = 120
+disable = ["missing-module-docstring",
+    "missing-class-docstring",
+    "missing-function-docstring",
+    "too-many-locals",
+    "invalid-name",
+    "too-many-statements",
+    "too-many-branches",
+    "broad-except",
+    "too-many-instance-attributes",
+    "too-few-public-methods",
+    "duplicate-code"
+]

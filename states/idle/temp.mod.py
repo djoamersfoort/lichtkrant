@@ -1,5 +1,7 @@
 from time import sleep
+
 from PIL import Image, ImageDraw, ImageFont
+
 from states.base import BaseState
 
 
@@ -10,10 +12,14 @@ class State(BaseState):
     index = 0
     delay = 12
 
+    def __init__(self):
+        super().__init__()
+        self.state = None
+
     # module check function
-    def check(self, state):
-        self.state = state
-        return state['temperature'] is not None
+    def check(self, space_state):
+        self.state = space_state
+        return space_state['temperature'] is not None
 
     # module runner
     def run(self):

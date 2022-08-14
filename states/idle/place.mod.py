@@ -1,7 +1,9 @@
-from states.base import BaseState
 from time import sleep
-from PIL import Image, ImageDraw, ImageFont
+
 import socketio
+from PIL import Image, ImageDraw, ImageFont
+
+from states.base import BaseState
 
 
 class State(BaseState):
@@ -51,7 +53,7 @@ class State(BaseState):
 
     def draw(self):
         draw = ImageDraw.Draw(self.image)
-        for y, row in enumerate(self.tiles):
+        for y, _ in enumerate(self.tiles):
             for x, color in enumerate(self.tiles[y]):
                 color = self.palette[int(color)]
                 draw.point((x, y), (color[0], color[1], color[2]))

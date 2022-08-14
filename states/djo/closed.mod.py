@@ -12,8 +12,8 @@ class State(BaseState):
     delay = 120
 
     # module check function
-    def check(self, state):
-        return state['djo'] == "closed"
+    def check(self, space_state):
+        return space_state['djo'] == "closed"
 
     # module runner
     def run(self):

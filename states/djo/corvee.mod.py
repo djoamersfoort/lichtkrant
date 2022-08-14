@@ -31,6 +31,7 @@ class State(BaseState):
         return "selected" in names and len(names["selected"]) > 0
 
     # runner function
+    # pylint: disable=too-many-branches
     def run(self):
         elapsed = 0
         blink_invert = False
@@ -71,7 +72,8 @@ class State(BaseState):
                     draw.text((4, 5 + i * 12 - scroll_y + len(names["present"]) * 12), j, fill=colors[i], anchor="lm",
                               font=fonts["noto11"])
                 scroll_y += scroll_speed
-                if scroll_y > len(names["present"]) * 12: scroll_y = 1
+                if scroll_y > len(names["present"]) * 12:
+                    scroll_y = 1
 
                 draw.rectangle([(0, 10), (95, 22)], fill=None, outline="cyan", width=1)
 
@@ -79,7 +81,8 @@ class State(BaseState):
                     scroll_speed -= 1
                 elif scroll_speed == 1 and (scroll_y + 10) % 12 == 0:
                     center_index = floor((scroll_y + 10) / 12)
-                    if center_index == len(names["present"]): center_index = 0
+                    if center_index == len(names["present"]):
+                        center_index = 0
 
                     centered = names["present"][center_index]
                     if centered in names["selected"]:
@@ -92,8 +95,8 @@ class State(BaseState):
                         scroll_y = 0
                         scroll_speed = 8
             else:
-                for i in range(len(chosen)):
-                    draw.text((48, 5 + 11 * i), chosen[i], fill=colors[i], anchor="mm", font=fonts["noto11"])
+                for i, name in enumerate(chosen):
+                    draw.text((48, 5 + 11 * i), name, fill=colors[i], anchor="mm", font=fonts["noto11"])
                 for i in range(0, 6):
                     y = (elapsed + i * 8) % 40
                     draw.rectangle([(1, y - 8), (6, y - 4)], fill="blue")

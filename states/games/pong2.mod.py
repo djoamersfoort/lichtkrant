@@ -1,8 +1,8 @@
-import threading
+import math
 import socket
+import threading
 from random import choice
 from time import sleep, time
-import math
 
 from states.base import BaseState
 
@@ -39,7 +39,7 @@ class Game:
         # bounce on the players OR assign score and serve again
         if round(self.ball.x) <= 1:
             bounce_pos = self.ball.y - self.p1.y
-            if bounce_pos >= 0 and bounce_pos <= self.p1.height:
+            if 0 <= bounce_pos <= self.p1.height:
                 steps = self.p1.height + 2
                 self.ball.direction = 180 - (bounce_pos + 1) * (180 / steps)
                 self.ball.velocity *= 1.1
@@ -48,7 +48,7 @@ class Game:
             self.ball.reset("left")
         elif round(self.ball.x) >= self.dims["width"] - 2:
             bounce_pos = self.ball.y - self.p2.y
-            if bounce_pos >= 0 and bounce_pos <= self.p2.height:
+            if 0 <= bounce_pos <= self.p2.height:
                 steps = self.p2.height + 2
                 self.ball.direction = 180 + ((bounce_pos + 1) * (180 / steps))
                 self.ball.velocity *= 1.1
@@ -64,6 +64,10 @@ class Game:
 
 class Player:
     def __init__(self, x, limit):
+        self.y = 0
+        self.movement = None
+        self.score = 0
+        self.has_won = False
         self.height = 7
         self.x = x
         self.limit = limit
@@ -91,6 +95,10 @@ class Player:
 
 class Ball:
     def __init__(self, bounds):
+        self.y = 0
+        self.x = 0
+        self.direction = None
+        self.velocity = None
         self.bounds = bounds
         self.reset()
 
@@ -127,52 +135,53 @@ class State(BaseState):
 
     def run(self):
         while not self.killed:
-            if self.game:
-                if not self.on_pi:
-                    time_start = time()
-                self.game.update()
-                # create a black empty set of pixels
-                pixels = []
-                for _ in range(self.winh):
-                    pixels.append([])
-                    for _ in range(self.winw):
-                        pixels[-1].append([0, 0, 0])
-                # draw all elements
-                ball = self.game.ball
-                ball_x = min(max(0, ball.x), self.game.dims["width"] - 1)
-                ball_y = min(max(0, ball.y), self.game.dims["height"] - 1)
-                pixels[round(ball_y)][round(ball_x)] = WHITE
-                for player in [self.game.p1, self.game.p2]:
-                    for y in range(player.y, player.y + player.height):
-                        pixels[y][player.x] = player.color()
-                for y in range(0, self.winh):
-                    if y % 2 == 0:
-                        pixels[y][int(self.winw / 2)] = WHITE
-                scores = [
-                    {
-                        "score": str(self.game.p1.score),
-                        "color": GREEN if self.game.p1.has_won else WHITE,
-                        "center": round(self.game.dims["width"] / 4 - 1)
-                    },
-                    {
-                        "score": str(self.game.p2.score),
-                        "color": GREEN if self.game.p2.has_won else WHITE,
-                        "center": round((self.game.dims["width"] / 4 * 3) - 1)
-                    }
-                ]
-                for sc in scores:
-                    digit_left = len(sc["score"]) * 2
-                    for y, row in enumerate(self.text(sc["score"])):
-                        for x, pixel in enumerate(row):
-                            if pixel:
-                                pos = sc["center"] - digit_left + x
-                                pixels[y + 1][pos] = sc["color"]
-                # flatten, convert and write buffer to display
-                self.output_frame(bytes(self.flatten(pixels)))
-                if not self.on_pi:
-                    time_end = time()
-                    time_delta = time_start - time_end
-                    sleep(max(0.04-time_delta, 0))
+            if not self.game:
+                return
+            if not self.on_pi:
+                time_start = time()
+            self.game.update()
+            # create a black empty set of pixels
+            pixels = []
+            for _ in range(self.winh):
+                pixels.append([])
+                for _ in range(self.winw):
+                    pixels[-1].append([0, 0, 0])
+            # draw all elements
+            ball = self.game.ball
+            ball_x = min(max(0, ball.x), self.game.dims["width"] - 1)
+            ball_y = min(max(0, ball.y), self.game.dims["height"] - 1)
+            pixels[round(ball_y)][round(ball_x)] = WHITE
+            for player in [self.game.p1, self.game.p2]:
+                for y in range(player.y, player.y + player.height):
+                    pixels[y][player.x] = player.color()
+            for y in range(0, self.winh):
+                if y % 2 == 0:
+                    pixels[y][int(self.winw / 2)] = WHITE
+            scores = [
+                {
+                    "score": str(self.game.p1.score),
+                    "color": GREEN if self.game.p1.has_won else WHITE,
+                    "center": round(self.game.dims["width"] / 4 - 1)
+                },
+                {
+                    "score": str(self.game.p2.score),
+                    "color": GREEN if self.game.p2.has_won else WHITE,
+                    "center": round((self.game.dims["width"] / 4 * 3) - 1)
+                }
+            ]
+            for sc in scores:
+                digit_left = len(sc["score"]) * 2
+                for y, row in enumerate(self.text(sc["score"])):
+                    for x, pixel in enumerate(row):
+                        if pixel:
+                            pos = sc["center"] - digit_left + x
+                            pixels[y + 1][pos] = sc["color"]
+            # flatten, convert and write buffer to display
+            self.output_frame(bytes(self.flatten(pixels)))
+            if not self.on_pi:
+                time_end = time()
+                time_delta = time_start - time_end
+                sleep(max(0.04-time_delta, 0))
 
     def receive(self):
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:

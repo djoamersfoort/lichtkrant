@@ -1,6 +1,7 @@
-from time import sleep
-from states.base import BaseState
 import random
+from time import sleep
+
+from states.base import BaseState
 
 
 class State(BaseState):
@@ -17,9 +18,13 @@ class State(BaseState):
     color = bytes([255, 255, 255])
     frame_delay = 1 / 30
 
+    def __init__(self):
+        super().__init__()
+        self.state = None
+
     # check function
-    def check(self, state):
-        self.state = state
+    def check(self, space_state):
+        self.state = space_state
         return True
 
     # module runner
