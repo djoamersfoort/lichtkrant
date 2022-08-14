@@ -1,23 +1,23 @@
 #!/usr/bin/env python
 
-import importlib.util
 import argparse
+import importlib.util
 import random
-import mqtt
 import time
-
+from glob import glob
 from os import path
 from time import sleep
-from glob import glob
 from typing import Optional, Any, List
+
+import mqtt
 from states.base import BaseState
 
 
 class LichtKrant:
 
-    def __init__(self, args):
-        self.args = args
-        mqtt.connect(not args.offline)
+    def __init__(self, cmd_args):
+        self.args = cmd_args
+        mqtt.connect(not cmd_args.offline)
         self.modules = None
         self.states = {}
 
@@ -40,7 +40,7 @@ class LichtKrant:
             if name not in self.states:
                 try:
                     state = module.State()
-                except Exception as ex:
+                except Exception:
                     continue
                 state.name = name
                 self.states[name] = state
@@ -71,7 +71,6 @@ class LichtKrant:
                 # The state's check() method crashed -> ignore it
                 if self.args.dry:
                     print(f"State module {name} check method crashed: {e}")
-                pass
 
         # return a random state with the highest index
         random.shuffle(filtered_states)
