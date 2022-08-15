@@ -1,5 +1,5 @@
 import socket
-from math import fabs as abs
+from math import fabs
 from threading import Thread
 from time import sleep
 
@@ -80,7 +80,7 @@ class Game:
             self.p1.vx /= 1.1
             self.p2.vx /= 1.1
             if self.p1.y == self.p2.y:
-                if abs(self.p1.vx) > abs(self.p2.vx):
+                if fabs(self.p1.vx) > fabs(self.p2.vx):
                     if self.p1.x > self.p2.x:
                         self.p2.x = self.p1.x - self.p1.size
                     else:
