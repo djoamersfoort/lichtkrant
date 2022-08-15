@@ -9,6 +9,7 @@ from states.base import BaseState
 WHITE = [255, 255, 255]
 BLUE = [0, 0, 255]
 GREEN = [0, 255, 0]
+GRAY = [100, 100, 100]
 
 
 class Game:
@@ -16,70 +17,113 @@ class Game:
         self.dims = dims
         h = self.dims["height"]
         w = self.dims["width"]
-        self.p1 = Player(x=1, limit=h)
-        self.p2 = Player(x=w - 2, limit=h)
+        self.players = []
+        self.players.append(Player(start_pos=0, bounds=(0, h)))
+        self.players.append(Player(start_pos=w - 1, bounds=(0, h)))
+        self.players.append(Player(start_pos=0, bounds=(0, 32), orientation="horizontal"))
+        self.players.append(Player(start_pos=0, bounds=(32, 64), orientation="horizontal"))
+        self.players.append(Player(start_pos=0, bounds=(64, 96), orientation="horizontal"))
+        self.players.append(Player(start_pos=h - 1, bounds=(0, 32), orientation="horizontal"))
+        self.players.append(Player(start_pos=h - 1, bounds=(32, 64), orientation="horizontal"))
+        self.players.append(Player(start_pos=h - 1, bounds=(64, 96), orientation="horizontal"))
         self.ball = Ball(self.dims)
         self.reset()
 
     def reset(self):
         self.ball.reset()
-        self.p1.reset()
-        self.p2.reset()
+        for player in self.players:
+            player.reset()
+
+    def checkCollision(self, orientation, player_pos):
+        for player in self.players:
+            if player.orientation != orientation:
+                continue
+            if orientation == "vertical":
+                if player.x != player_pos:
+                    continue
+                if self.ball.y < player.bounds[0] or self.ball.y > player.bounds[1]:
+                    continue
+                bounce_pos = self.ball.y - player.y
+            else:
+                if player.y != player_pos:
+                    continue
+                if self.ball.x < player.bounds[0] or self.ball.x > player.bounds[1]:
+                    continue
+                bounce_pos = self.ball.x - player.x
+
+            if not player.ishuman:
+                self.ball.direction = 180 - self.ball.direction
+                return
+            elif 0 <= bounce_pos <= player.height:
+                steps = player.height + 2
+                if player_pos == 0:
+                    self.ball.direction = 180 - ((bounce_pos + 1) * (180 / steps))
+                else:
+                    self.ball.direction = 180 + ((bounce_pos + 1) * (180 / steps))
+                self.ball.velocity *= 1.1
+                self.ball.last_player = player
+                return
+
+        if self.ball.last_player:
+            self.ball.last_player.score += 1
+        self.ball.reset()
 
     def update(self):
-        if not self.p1.ishuman or not self.p2.ishuman:
+        if not self.players[0].ishuman or not self.players[1].ishuman:
             return
-        if self.p1.has_won or self.p2.has_won:
-            sleep(5)
-            self.reset()
-            return
-        self.p1.move()
-        self.p2.move()
+        for player in self.players:
+            if player.has_won:
+                sleep(5)
+                self.reset()
+                return
+            player.move()
         self.ball.move()
         # bounce on the players OR assign score and serve again
-        if round(self.ball.x) <= 1:
-            bounce_pos = self.ball.y - self.p1.y
-            if bounce_pos >= 0 and bounce_pos <= self.p1.height:
-                steps = self.p1.height + 2
-                self.ball.direction = 180 - (bounce_pos + 1) * (180 / steps)
-                self.ball.velocity *= 1.1
-                return
-            self.p2.score += 1
-            self.ball.reset("left")
-        elif round(self.ball.x) >= self.dims["width"] - 2:
-            bounce_pos = self.ball.y - self.p2.y
-            if bounce_pos >= 0 and bounce_pos <= self.p2.height:
-                steps = self.p2.height + 2
-                self.ball.direction = 180 + ((bounce_pos + 1) * (180 / steps))
-                self.ball.velocity *= 1.1
-                return
-            self.p1.score += 1
-            self.ball.reset("right")
+        if self.ball.x <= 0:
+            self.checkCollision("vertical", 0)
+        if self.ball.x >= self.dims["width"]:
+            self.checkCollision("vertical", self.dims["width"] - 1)
+        if self.ball.y <= 0:
+            self.checkCollision("horizontal", 0)
+        if self.ball.y >= self.dims["height"]:
+            self.checkCollision("horizontal", self.dims["height"] - 1)
+
         # check winner
-        if self.p1.score >= 11 and self.p1.score - self.p2.score >= 2:
-            self.p1.has_won = True
-        if self.p2.score >= 11 and self.p2.score - self.p1.score >= 2:
-            self.p2.has_won = True
+        for player in self.players:
+            if player.score >= 11:
+                player.has_won = True
 
 
 class Player:
-    def __init__(self, x, limit):
+    def __init__(self, start_pos, bounds, orientation="vertical"):
+        self.orientation = orientation
         self.height = 7
-        self.x = x
-        self.limit = limit
+        if self.orientation == "vertical":
+            self.x = start_pos
+        else:
+            self.y = start_pos
+        self.bounds = bounds
         self.ishuman = False
         self.reset()
         self.code = BLUE
 
     def reset(self):
-        self.y = int((self.limit / 2) - self.height / 2)
+        average = (self.bounds[0] + self.bounds[1]) / 2
+        if self.orientation == "vertical":
+            self.y = int(average - self.height / 2)
+        else:
+            self.x = int(average - self.height / 2)
         self.score = 0
         self.has_won = False
         self.movement = 0
 
     def move(self):
-        self.y += self.movement
-        self.y = min(max(0, self.y), self.limit - self.height)
+        if self.orientation == "vertical":
+            self.y += self.movement
+            self.y = min(max(self.bounds[0], self.y), self.bounds[1] - self.height)
+        else:
+            self.x += self.movement
+            self.x = min(max(self.bounds[0], self.x), self.bounds[1] - self.height)
 
     def color(self):
         if self.has_won:
@@ -97,9 +141,6 @@ class Ball:
     def move(self):
         self.x += math.sin(math.radians(self.direction)) * self.velocity
         self.y += math.cos(math.radians(self.direction)) * self.velocity
-        if round(self.y) <= 0 or round(self.y) >= self.bounds["height"] - 1:
-            self.direction = 180 - self.direction
-            self.y = min(max(self.y, 0.01), self.bounds["height"] - 1.01)
 
     def reset(self, side=None):
         self.velocity = 2
@@ -107,6 +148,7 @@ class Ball:
         self.direction = choice(dirs.get(side, dirs["left"] + dirs["right"]))
         self.x = self.bounds["width"] / 2
         self.y = self.bounds["height"] / 2
+        self.last_player = None
 
 
 class State(BaseState):
@@ -142,37 +184,44 @@ class State(BaseState):
                 ball_x = min(max(0, ball.x), self.game.dims["width"] - 1)
                 ball_y = min(max(0, ball.y), self.game.dims["height"] - 1)
                 pixels[round(ball_y)][round(ball_x)] = WHITE
-                for player in [self.game.p1, self.game.p2]:
-                    for y in range(player.y, player.y + player.height):
-                        pixels[y][player.x] = player.color()
-                for y in range(0, self.winh):
-                    if y % 2 == 0:
-                        pixels[y][int(self.winw / 2)] = WHITE
-                scores = [
-                    {
-                        "score": str(self.game.p1.score),
-                        "color": GREEN if self.game.p1.has_won else WHITE,
-                        "center": round(self.game.dims["width"] / 4 - 1)
-                    },
-                    {
-                        "score": str(self.game.p2.score),
-                        "color": GREEN if self.game.p2.has_won else WHITE,
-                        "center": round((self.game.dims["width"] / 4 * 3) - 1)
-                    }
-                ]
+                for player in self.game.players:
+                    if not player.ishuman:
+                        continue
+                    if player.orientation == "vertical":
+                        for y in range(player.y, player.y + player.height):
+                            pixels[y][player.x] = player.color()
+                    else:
+                        for x in range(player.x, player.x + player.height):
+                            pixels[player.y][x] = player.color()
+                scores = []
+                for player in self.game.players:
+                    if not player.ishuman:
+                        continue
+                    if player.orientation == "vertical":
+                        y = int((player.bounds[1] - player.bounds[0]) / 2 + player.bounds[0]) - 3
+                        x = 2 if player.x == 0 else self.game.dims["width"] - 5
+                    else:
+                        x = int((player.bounds[1] - player.bounds[0]) / 2 + player.bounds[0]) - 2
+                        y = 2 if player.y == 0 else self.game.dims["height"] - 7
+
+                    scores.append({
+                        "score": str(player.score),
+                        "color": GREEN if player.has_won else GRAY,
+                        "center": (x, y)
+                    })
                 for sc in scores:
-                    digit_left = len(sc["score"]) * 2
                     for y, row in enumerate(self.text(sc["score"])):
                         for x, pixel in enumerate(row):
                             if pixel:
-                                pos = sc["center"] - digit_left + x
-                                pixels[y + 1][pos] = sc["color"]
+                                pos_x = sc["center"][0] + x
+                                pos_y = sc["center"][1] + y
+                                pixels[pos_y][pos_x] = sc["color"]
                 # flatten, convert and write buffer to display
                 self.output_frame(bytes(self.flatten(pixels)))
                 if not self.on_pi:
                     time_end = time()
                     time_delta = time_start - time_end
-                    sleep(max(0.04-time_delta, 0))
+                    sleep(max(0.04 - time_delta, 0))
 
     def receive(self):
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
@@ -215,13 +264,14 @@ class State(BaseState):
                     # tldr: I kind of hate sockets now >.<
                     conn.send(b"_")
                 except Exception:
-                    if player == "1":
-                        self.game.p1.ishuman = False
+                    if player is not None:
+                        self.game.players[player].ishuman = False
                         self.game.reset()
-                    if player == "2":
-                        self.game.p2.ishuman = False
-                        self.game.reset()
-                    if not self.game.p1.ishuman and not self.game.p2.ishuman:
+                    total_players = 0
+                    for player in self.game.players:
+                        if player.ishuman:
+                            total_players += 1
+                    if total_players < 2:
                         self.game = None
                     break
             if not self.game:
@@ -231,21 +281,14 @@ class State(BaseState):
             # Otherwise no movement would be possible at all,
             # as real messages are frequently followed by an empty message.
             request = data.decode().strip()
-            if player == "1" and request:
+            if player is not None:
                 if len(request) == 7 and request.startswith("#"):
-                    self.game.p1.code = self.color(request.split("#")[1])
-                self.game.p1.movement = self.move(request)
-            elif player == "2" and request:
-                if len(request) == 7 and request.startswith("#"):
-                    self.game.p2.code = self.color(request.split("#")[1])
-                self.game.p2.movement = self.move(request)
-            elif not self.game.p1.ishuman:
-                player = "1"
-                self.game.p1.ishuman = True
-                if self.game.p2.ishuman:
-                    self.game.reset()
-            elif not self.game.p2.ishuman:
-                player = "2"
-                self.game.p2.ishuman = True
-                if self.game.p1.ishuman:
-                    self.game.reset()
+                    player.code = self.color(request.split("#")[1])
+                player.movement = self.move(request)
+            else:
+                for p in self.game.players:
+                    if not p.ishuman:
+                        player = p
+                        p.ishuman = True
+                        self.game.reset()
+                        break
