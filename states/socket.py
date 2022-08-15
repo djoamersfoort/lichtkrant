@@ -97,4 +97,7 @@ class Player:
 
     def remove(self):
         for listener in self.leaveListeners:
-            listener()
+            if "use_player_in_leave" in self.data and self.data["use_player_in_leave"]:
+                listener(self)
+            else:
+                listener()

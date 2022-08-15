@@ -150,36 +150,28 @@ class Board:
         if not self.current_piece:
             self.generate_new_piece()
 
-    def process_movement(self, new_movement):
-        if len(new_movement) != 6:
-            return
-        for index, key in enumerate(list("wasde ")):
-            move = int(list(new_movement)[index] == "1")
-            if move:
-                self.movement[key] += 1
-            else:
-                self.movement[key] = 0
+    def press(self, key):
         if self.in_game:
             if self.is_alive:
-                if self.movement["w"] == 1:
+                if key == "w":
                     new_piece = self.current_piece.rotate()
                     if self.piece_location_valid(new_piece):
                         self.current_piece = new_piece
-                if self.movement["a"] == 1:
+                if key == "a":
                     new_piece = self.current_piece.move("left")
                     if self.piece_location_valid(new_piece):
                         self.current_piece = new_piece
-                if self.movement["d"] == 1:
+                if key == "d":
                     new_piece = self.current_piece.move("right")
                     if self.piece_location_valid(new_piece):
                         self.current_piece = new_piece
-                if self.movement["e"] == 1:
+                if key == "e":
                     new_piece = self.current_piece.rotate(True)
                     if self.piece_location_valid(new_piece):
                         self.current_piece = new_piece
-                if self.movement[" "] == 1:
+                if key == " ":
                     self.move_piece_down("hard")
-        elif self.movement[" "] == 1:
+        elif key == " ":
             self.ready_for_game = not self.ready_for_game
 
     def piece_location_valid(self, custom_piece=None):
@@ -359,7 +351,7 @@ class State(BaseState):
 
     def __init__(self):
         super().__init__()
-        threading.Thread(target=self.receive).start()
+        self.is_game = True
 
     def check(self, _state):
         return self.game
@@ -387,43 +379,26 @@ class State(BaseState):
                     time_delta = time_start - time_end
                     sleep(max(0.04-time_delta, 0))
 
-    def receive(self):
-        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-            s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-            s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
-            s.bind(("0.0.0.0", 7777))
-            s.listen()
-            while not self.killed:
-                conn, addr = s.accept()
-                threading.Thread(target=self.msg, args=(conn, addr)).start()
+    def add_player(self, player):
+        if not self.game:
+            self.game = Game()
+        board = next(
+            (board for board in self.game.boards if not board.player), None)
+        if board:
+            board.player = player
+        else:
+            return
+        player.data["use_player_in_leave"] = True
+        player.on_press(board.press)
+        player.on_leave(self.leave)
 
-    def msg(self, conn, _addr):
-        while not self.killed:
-            data = b''
-            try:
-                data = conn.recv(6)
-                conn.send(b"_")
-            except Exception:
-                index, board = next(((i, board) for (i, board) in enumerate(
-                    self.game.boards) if board.player is conn), None)
-                if board:
-                    self.game.boards[index] = Board(index)
-                filled_boards = [
-                    board for board in self.game.boards if board.player
-                ]
-                if not filled_boards:
-                    self.game = None
-                break
-            if not self.game:
-                self.game = Game()
-            board = next((board for board in self.game.boards if board.player is conn), None)
-            request = data.decode().strip()
-            if board and request:
-                board.process_movement(request)
-            elif request:
-                empty_board = [
-                    board for board in self.game.boards if not board.player]
-                empty_board = next(
-                    (board for board in self.game.boards if not board.player), None)
-                if empty_board:
-                    empty_board.player = conn
+    def leave(self, player):
+        index, board = next(((i, board) for (i, board) in enumerate(
+            self.game.boards) if board.player is player), None)
+        if board:
+            self.game.boards[index] = Board(index)
+        filled_boards = [
+            board for board in self.game.boards if board.player
+        ]
+        if not filled_boards:
+            self.game = None
