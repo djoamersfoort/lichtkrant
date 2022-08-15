@@ -16,6 +16,7 @@ class BaseState(Thread):
         super().__init__()
         self.killed = False
         self.on_pi = which("rpi-update")
+        self.is_game = False
 
     def kill(self) -> None:
         self.killed = True
@@ -89,3 +90,6 @@ class BaseState(Thread):
         if isinstance(_list[0], list):
             return self.flatten(_list[0]) + self.flatten(_list[1:])
         return _list[:1] + self.flatten(_list[1:])
+
+    def add_player(self, player):
+        return

@@ -1,4 +1,3 @@
-import socket
 import threading
 from random import randrange
 from time import sleep
@@ -11,9 +10,8 @@ DIMENSIONS = (96, 32)
 
 
 class Player:
-    def __init__(self, conn, addr, state):
-        self.conn = conn
-        self.addr = addr
+    def __init__(self, socket, state):
+        self.socket = socket
         self.active = True
         self.color = "FFFFFF"
         self.direction = (0, 1)
@@ -22,7 +20,15 @@ class Player:
         self.size = 2
         self.dead = False
         self.state = state
-        threading.Thread(target=self.msg).start()
+        socket.on_color(self.set_color)
+        socket.on_press(self.turn)
+        socket.on_leave(self.leave)
+
+    def set_color(self, color):
+        self.color = color.lstrip("#")
+
+    def leave(self):
+        self.active = False
 
     def reset(self):
         self.direction = (0, 1)
@@ -39,31 +45,14 @@ class Player:
         return False
 
     def turn(self, direction):
-        if not len(direction) == 4:
-            return
-
-        if direction[0] == "1" and not self.direction == (0, 1):
+        if direction == "w":
             self.direction = (0, -1)
-        if direction[1] == "1" and not self.direction == (1, 0):
+        elif direction == "a":
             self.direction = (-1, 0)
-        if direction[2] == "1" and not self.direction == (0, -1):
+        elif direction == "s":
             self.direction = (0, 1)
-        if direction[3] == "1" and not self.direction == (-1, 0):
+        elif direction == "d":
             self.direction = (1, 0)
-
-    def msg(self):
-        while self.active and not self.state.killed:
-            data = b''
-            try:
-                data = self.conn.recv(7)
-                self.conn.send(b'')
-            except Exception:
-                self.active = False
-
-            request = data.decode().strip()
-            if len(request) == 7 and request.startswith("#"):
-                self.color = request.lstrip("#")
-            self.turn(request)
 
     def newPos(self):
         return self.elements[0][0] + self.direction[0], self.elements[0][1] + self.direction[1]
@@ -107,7 +96,10 @@ class Game:
         self.apples = []
         self.bodies = []
         self.state = state
-        threading.Thread(target=self.receive).start()
+
+    def add_player(self, player):
+        self.players.append(Player(player, self.state))
+        self.apples.append(Apple())
 
     @staticmethod
     def hex_to_rgb(code):
@@ -158,18 +150,6 @@ class Game:
 
         return image
 
-    def receive(self):
-        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-            s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-            s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
-            s.bind(("0.0.0.0", 1029))
-            s.listen()
-            while not self.state.killed:
-                conn, addr = s.accept()
-                player = Player(conn, addr, self.state)
-                self.players.append(player)
-                self.apples.append(Apple())
-
 
 class State(BaseState):
     def __init__(self):
@@ -177,7 +157,11 @@ class State(BaseState):
         self.name = "snake"
         self.index = 8
         self.delay = 5
+        self.is_game = True
         self.game = Game(self)
+
+    def add_player(self, player):
+        self.game.add_player(player)
 
     def check(self, _state):
         return len(self.game.players) > 0

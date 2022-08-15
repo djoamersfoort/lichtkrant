@@ -11,6 +11,7 @@ from typing import Optional, Any, List
 
 import mqtt
 from states.base import BaseState
+from states.socket import Socket
 
 
 class LichtKrant:
@@ -20,12 +21,20 @@ class LichtKrant:
         mqtt.connect(not cmd_args.offline)
         self.modules = None
         self.states = {}
+        self.socket = Socket(self)
+        self.socket.start()
 
     def import_module(self, loc: str) -> (Optional[Any], str):
         name = path.basename(loc).replace('.mod.py', '', -1)
         spec = importlib.util.spec_from_file_location(name, loc)
         module = spec.loader.load_module()
         return module, name
+
+    def add_player(self, game, player):
+        state = self.get_state(game)
+        if not state.is_game:
+            return
+        state.add_player(player)
 
     def read_modules(self, location: str) -> List[Any]:
         # loading state modules
