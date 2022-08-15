@@ -1,16 +1,17 @@
-from time import sleep
 from random import randint
+from time import sleep
+
 from states.base import BaseState
 
-class State(BaseState):
 
+class State(BaseState):
     # module information
     name = "dvd"
     index = 0
     delay = 30
 
     # check function
-    def check(self, state):
+    def check(self, space_state):
         return True
 
     # DJO logo
@@ -30,7 +31,7 @@ class State(BaseState):
     winw = 96
     winh = 32
 
-    frame_delay = 1/45
+    frame_delay = 1 / 45
 
     # module runner
     def run(self):
@@ -100,4 +101,3 @@ class State(BaseState):
             for _i in range(2):
                 self.output_frame(frame)
                 sleep(self.frame_delay)
-                

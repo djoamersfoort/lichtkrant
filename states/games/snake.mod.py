@@ -1,8 +1,9 @@
-import threading
 import socket
-from time import sleep, time
-from PIL import Image, ImageDraw, ImageFont, ImageColor
+import threading
 from random import randrange
+from time import sleep
+
+from PIL import Image, ImageDraw
 
 from states.base import BaseState
 
@@ -85,9 +86,7 @@ class Body:
     @staticmethod
     def sub(current):
         new = current - 1
-        if new < 0:
-            new = 0
-        return new
+        return max(new, 0)
 
     def fade(self):
         self.color = (self.sub(self.color[0]), self.sub(self.color[1]), self.sub(self.color[2]))
@@ -119,8 +118,7 @@ class Game:
             if not player.active:
                 continue
             speed = 30 - round(len(player.elements) / 2)
-            if speed < 5:
-                speed = 5
+            speed = max(speed, 5)
 
             if tick % speed == 0:
                 player.update()

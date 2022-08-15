@@ -1,7 +1,9 @@
-from states.base import BaseState
-from time import sleep
 from datetime import datetime
+from time import sleep
+
 from PIL import Image, ImageDraw, ImageFont
+
+from states.base import BaseState
 
 
 class State(BaseState):

@@ -30,7 +30,9 @@ SHAPES = {
 }
 
 
-def overlap_text(pixels, text, base_x, base_y, color=GREY):
+def overlap_text(pixels, text, base_x, base_y, color=None):
+    if color is None:
+        color = GREY
     for y, row in enumerate(BaseState.text(text)):
         for x, pixel in enumerate(row):
             if pixel:

@@ -1,7 +1,9 @@
-from threading import Thread
-from sys import stdout
+from abc import abstractmethod
 from shutil import which
+from sys import stdout
+from threading import Thread
 from typing import List
+
 from PIL import Image
 
 
@@ -18,6 +20,7 @@ class BaseState(Thread):
     def kill(self) -> None:
         self.killed = True
 
+    @abstractmethod
     def check(self, space_state: dict) -> bool:
         return True
 
@@ -71,18 +74,18 @@ class BaseState(Thread):
             "!": [[0, 1, 0], [0, 1, 0], [0, 1, 0], [0, 0, 0], [0, 1, 0]]
         }
         buffer = [[], [], [], [], []]
-        for char_index, _ in enumerate(text):
+        for char_index, char_text in enumerate(text):
             char_buffer = chars.get(
-                str(text[char_index].lower()), [[], [], [], [], []])
+                str(char_text.lower()), [[], [], [], [], []])
             for row_index in range(0, 5):
                 buffer[row_index].extend(char_buffer[row_index])
                 if char_index < len(text) - 1:
                     buffer[row_index].append(0)
         return buffer
 
-    def flatten(self, s: List) -> List:
-        if s == []:
-            return s
-        if isinstance(s[0], list):
-            return self.flatten(s[0]) + self.flatten(s[1:])
-        return s[:1] + self.flatten(s[1:])
+    def flatten(self, _list: List) -> List:
+        if _list == []:
+            return _list
+        if isinstance(_list[0], list):
+            return self.flatten(_list[0]) + self.flatten(_list[1:])
+        return _list[:1] + self.flatten(_list[1:])

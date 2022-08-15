@@ -1,6 +1,8 @@
-from time import sleep
 from datetime import timedelta, datetime
+from time import sleep
+
 from PIL import Image, ImageDraw, ImageFont, ImageOps
+
 from states.base import BaseState
 
 
@@ -12,7 +14,7 @@ class State(BaseState):
     delay = 15
 
     # module check function
-    def check(self, state):
+    def check(self, space_state):
         now = datetime.now()
         return now.weekday() == 5 and now.hour == 11 and 30 <= now.minute < 45
 

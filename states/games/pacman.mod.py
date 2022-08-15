@@ -1,9 +1,10 @@
-import threading
-import socket
 import json
-from PIL import Image, ImageDraw, ImageFont
-from time import sleep
+import socket
+import threading
 from random import choice
+from time import sleep
+
+from PIL import Image, ImageDraw
 
 from states.base import BaseState
 
@@ -13,7 +14,7 @@ class Game:
         self.image = Image.new("RGB", (96, 32), "black")
         self.draw = ImageDraw.Draw(self.image)
         self.food = 0
-        with open("./static/pacman_assets/map.json") as f:
+        with open("./static/pacman_assets/map.json", encoding="utf-8") as f:
             self.map = json.load(f)
         self.direction = [1, 0]
         self.prepare()
@@ -33,7 +34,7 @@ class Game:
 
     def prepare(self):
         for y, row in enumerate(self.map["map"]):
-            for x, i in enumerate(row):
+            for x, _ in enumerate(row):
                 self.draw.point((x, y), (0, 0, 0))
                 self.redraw(x, y)
 
@@ -224,7 +225,7 @@ class Enemy:
         self.scattering = False
 
     def ideal_direction(self, position):
-        map = self.game.map["map"]
+        the_map = self.game.map["map"]
 
         distances = [
             {"direction": "up", "distance": self.position["y"] - position["y"]},
@@ -235,19 +236,19 @@ class Enemy:
         distances.sort(key=lambda d: d["distance"])
         for distance in distances:
             if distance["direction"] == "up":
-                if not map[self.position["y"] + 1][self.position["x"]] == 1:
+                if not the_map[self.position["y"] + 1][self.position["x"]] == 1:
                     if self.direction["y"] != -1:
                         return {"x": 0, "y": 1}
             if distance["direction"] == "down":
-                if not map[self.position["y"] - 1][self.position["x"]] == 1:
+                if not the_map[self.position["y"] - 1][self.position["x"]] == 1:
                     if self.direction["y"] != 1:
                         return {"x": 0, "y": -1}
             if distance["direction"] == "left":
-                if not map[self.position["y"]][self.position["x"] + 1] == 1:
+                if not the_map[self.position["y"]][self.position["x"] + 1] == 1:
                     if self.direction["x"] != -1:
                         return {"x": 1, "y": 0}
             if distance["direction"] == "right":
-                if not map[self.position["y"]][self.position["x"] - 1] == 1:
+                if not the_map[self.position["y"]][self.position["x"] - 1] == 1:
                     if self.direction["x"] != 1:
                         return {"x": -1, "y": 0}
 

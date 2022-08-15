@@ -1,9 +1,10 @@
+import glob
 import random
+from time import sleep
 
 from PIL import Image
-from time import sleep
+
 from states.base import BaseState
-import glob
 
 
 class State(BaseState):

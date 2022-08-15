@@ -1,10 +1,12 @@
-from PIL import Image, ImageDraw, ImageFont
-from time import sleep
-from datetime import datetime, timedelta
-from states.base import BaseState
-import requests
 import json
 import math
+from datetime import datetime, timedelta
+from time import sleep
+
+import requests
+from PIL import Image, ImageDraw, ImageFont
+
+from states.base import BaseState
 
 
 class State(BaseState):
@@ -14,7 +16,8 @@ class State(BaseState):
     index = 0
     delay = 12
 
-    url = "https://graphdata.buienradar.nl/2.0/forecast/geo/Rain3Hour?lat=52.09&lon=5.12&btc=202105271011&ak=3c4a3037-85e6-4d1e-ad6c-f3f6e4b75f2f"
+    url = "https://graphdata.buienradar.nl/2.0/forecast/geo/Rain3Hour?" \
+          "lat=52.09&lon=5.12&btc=202105271011&ak=3c4a3037-85e6-4d1e-ad6c-f3f6e4b75f2f"
 
     # check function
     def check(self, _state):
@@ -39,8 +42,8 @@ class State(BaseState):
         oldx = 0
         oldy = 0
 
-        for i in range(0, len(data)):
-            value = data[i]['value']
+        for element in data:
+            value = element['value']
 
             if value > 5:
                 is_rainy = True

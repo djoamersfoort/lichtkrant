@@ -1,14 +1,17 @@
-from states.base import BaseState
-from PIL import Image, ImageFont, ImageDraw
 from time import sleep
+
 import requests
+from PIL import Image, ImageFont, ImageDraw
+
+from states.base import BaseState
+
 
 class State(BaseState):
     # module information
     name = "dictee"
     index = 7
     delay = 30
-    show_time = 7 # time every result is displayed on-screen, including slide animation
+    show_time = 7  # time every result is displayed on-screen, including slide animation
     results = []
     elapsed = 0
 
@@ -43,8 +46,9 @@ class State(BaseState):
             draw.text((48, 1), "UITSLAG DICTEE", fill="white", anchor="mt", font=fonts["font11"])
             for i, res in enumerate(self.results):
                 draw.text((2 + i * 96 - scroll_x, 12), res["name"], fill="white", anchor="lt", font=fonts["font11"])
-                draw.text((2 + i * 96 - scroll_x, 23), str(res["score"]) + "/" + str(res["total"]), fill=(200, 200, 200), anchor="lt", font=fonts["font9"])
-                
+                draw.text((2 + i * 96 - scroll_x, 23), str(res["score"]) + "/" + str(res["total"]),
+                          fill=(200, 200, 200), anchor="lt", font=fonts["font9"])
+
                 grade = round(res["score"] * 9 / res["total"] + 1, 1)
                 grade_color = "lime" if grade >= 5.5 else "red"
                 draw.text((93 + i * 96 - scroll_x, 21), str(grade), fill=grade_color, anchor="rm", font=fonts["font16"])
@@ -54,6 +58,7 @@ class State(BaseState):
             if self.elapsed % self.show_time >= (self.show_time - 1) and len(self.results) > 1:
                 # round() to prevent addition glitches
                 scroll_x = round(scroll_x + (96 / 5), 1)
-                if scroll_x >= len(self.results) * 96: scroll_x = 0
-        
+                if scroll_x >= len(self.results) * 96:
+                    scroll_x = 0
+
             sleep(0.2)

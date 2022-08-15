@@ -1,8 +1,8 @@
-import threading
+import math
 import socket
+import threading
 from random import choice
 from time import sleep, time
-import math
 
 from states.base import BaseState
 
@@ -54,7 +54,7 @@ class Game:
             if not player.ishuman:
                 self.ball.direction = 180 - self.ball.direction
                 return
-            elif 0 <= bounce_pos <= player.height:
+            if 0 <= bounce_pos <= player.height:
                 steps = player.height + 2
                 if player_pos == 0:
                     self.ball.direction = 180 - ((bounce_pos + 1) * (180 / steps))
@@ -87,7 +87,6 @@ class Game:
             self.checkCollision("horizontal", 0)
         if self.ball.y >= self.dims["height"]:
             self.checkCollision("horizontal", self.dims["height"] - 1)
-
         # check winner
         for player in self.players:
             if player.score >= 11:
@@ -135,6 +134,11 @@ class Player:
 
 class Ball:
     def __init__(self, bounds):
+        self.y = 0
+        self.x = 0
+        self.direction = None
+        self.velocity = None
+        self.last_player = None
         self.bounds = bounds
         self.reset()
 
@@ -169,59 +173,60 @@ class State(BaseState):
 
     def run(self):
         while not self.killed:
-            if self.game:
-                if not self.on_pi:
-                    time_start = time()
-                self.game.update()
-                # create a black empty set of pixels
-                pixels = []
-                for _ in range(self.winh):
-                    pixels.append([])
-                    for _ in range(self.winw):
-                        pixels[-1].append([0, 0, 0])
-                # draw all elements
-                ball = self.game.ball
-                ball_x = min(max(0, ball.x), self.game.dims["width"] - 1)
-                ball_y = min(max(0, ball.y), self.game.dims["height"] - 1)
-                pixels[round(ball_y)][round(ball_x)] = WHITE
-                for player in self.game.players:
-                    if not player.ishuman:
-                        continue
-                    if player.orientation == "vertical":
-                        for y in range(player.y, player.y + player.height):
-                            pixels[y][player.x] = player.color()
-                    else:
-                        for x in range(player.x, player.x + player.height):
-                            pixels[player.y][x] = player.color()
-                scores = []
-                for player in self.game.players:
-                    if not player.ishuman:
-                        continue
-                    if player.orientation == "vertical":
-                        y = int((player.bounds[1] - player.bounds[0]) / 2 + player.bounds[0]) - 3
-                        x = 2 if player.x == 0 else self.game.dims["width"] - 5
-                    else:
-                        x = int((player.bounds[1] - player.bounds[0]) / 2 + player.bounds[0]) - 2
-                        y = 2 if player.y == 0 else self.game.dims["height"] - 7
+            if not self.game:
+                continue
+            if not self.on_pi:
+                time_start = time()
+            self.game.update()
+            # create a black empty set of pixels
+            pixels = []
+            for _ in range(self.winh):
+                pixels.append([])
+                for _ in range(self.winw):
+                    pixels[-1].append([0, 0, 0])
+            # draw all elements
+            ball = self.game.ball
+            ball_x = min(max(0, ball.x), self.game.dims["width"] - 1)
+            ball_y = min(max(0, ball.y), self.game.dims["height"] - 1)
+            pixels[round(ball_y)][round(ball_x)] = WHITE
+            for player in self.game.players:
+                if not player.ishuman:
+                    continue
+                if player.orientation == "vertical":
+                    for y in range(player.y, player.y + player.height):
+                        pixels[y][player.x] = player.color()
+                else:
+                    for x in range(player.x, player.x + player.height):
+                        pixels[player.y][x] = player.color()
+            scores = []
+            for player in self.game.players:
+                if not player.ishuman:
+                    continue
+                if player.orientation == "vertical":
+                    y = int((player.bounds[1] - player.bounds[0]) / 2 + player.bounds[0]) - 3
+                    x = 2 if player.x == 0 else self.game.dims["width"] - 5
+                else:
+                    x = int((player.bounds[1] - player.bounds[0]) / 2 + player.bounds[0]) - 2
+                    y = 2 if player.y == 0 else self.game.dims["height"] - 7
 
-                    scores.append({
-                        "score": str(player.score),
-                        "color": GREEN if player.has_won else GRAY,
-                        "center": (x, y)
-                    })
-                for sc in scores:
-                    for y, row in enumerate(self.text(sc["score"])):
-                        for x, pixel in enumerate(row):
-                            if pixel:
-                                pos_x = sc["center"][0] + x
-                                pos_y = sc["center"][1] + y
-                                pixels[pos_y][pos_x] = sc["color"]
-                # flatten, convert and write buffer to display
-                self.output_frame(bytes(self.flatten(pixels)))
-                if not self.on_pi:
-                    time_end = time()
-                    time_delta = time_start - time_end
-                    sleep(max(0.04 - time_delta, 0))
+                scores.append({
+                    "score": str(player.score),
+                    "color": GREEN if player.has_won else GRAY,
+                    "center": (x, y)
+                })
+            for sc in scores:
+                for y, row in enumerate(self.text(sc["score"])):
+                    for x, pixel in enumerate(row):
+                        if pixel:
+                            pos_x = sc["center"][0] + x
+                            pos_y = sc["center"][1] + y
+                            pixels[pos_y][pos_x] = sc["color"]
+            # flatten, convert and write buffer to display
+            self.output_frame(bytes(self.flatten(pixels)))
+            if not self.on_pi:
+                time_end = time()
+                time_delta = time_start - time_end
+                sleep(max(0.04 - time_delta, 0))
 
     def receive(self):
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
@@ -265,7 +270,7 @@ class State(BaseState):
                     conn.send(b"_")
                 except Exception:
                     if player is not None:
-                        self.game.players[player].ishuman = False
+                        player.ishuman = False
                         self.game.reset()
                     total_players = 0
                     for player in self.game.players:
