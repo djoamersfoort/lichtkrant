@@ -82,22 +82,34 @@ class Player:
     def set_color(self, code):
         self.sio.emit("color", code, room=self.sid)
 
+    def get_flag(self, flag):
+        return flag in self.data and self.data[flag]
+
     def key_down(self, key):
         for listener in self.pressListeners:
-            listener(key)
+            if self.get_flag("use_player_in_key"):
+                listener(self, key)
+            else:
+                listener(key)
 
     def key_up(self, key):
         for listener in self.releaseListeners:
-            listener(key)
+            if self.get_flag("use_player_in_key"):
+                listener(self, key)
+            else:
+                listener(key)
 
     def color(self, new):
         if len(new) == 7 and new.startswith("#"):
             for listener in self.colorListeners:
-                listener(new)
+                if self.get_flag("use_player_in_color"):
+                    listener(self, new)
+                else:
+                    listener(new)
 
     def remove(self):
         for listener in self.leaveListeners:
-            if "use_player_in_leave" in self.data and self.data["use_player_in_leave"]:
+            if self.get_flag("use_player_in_leave"):
                 listener(self)
             else:
                 listener()
