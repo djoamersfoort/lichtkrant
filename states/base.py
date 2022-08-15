@@ -90,6 +90,3 @@ class BaseState(Thread):
         if isinstance(_list[0], list):
             return self.flatten(_list[0]) + self.flatten(_list[1:])
         return _list[:1] + self.flatten(_list[1:])
-
-    def add_player(self):
-        return
