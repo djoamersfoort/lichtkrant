@@ -31,7 +31,10 @@ class LichtKrant:
         return module, name
 
     def add_player(self, game, player):
-        state = self.get_state(game)
+        self.read_states()
+        if game not in self.states:
+            return
+        state = self.states[game]
         if not state.is_game:
             return
         state.add_player(player)
