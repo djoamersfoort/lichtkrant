@@ -156,10 +156,20 @@ class State(BaseState):
 
     def __init__(self):
         super().__init__()
-        threading.Thread(target=self.receive).start()
+        self.is_game = True
+
+    def add_player(self, player):
+        if self.game:
+            return
+        self.game = Game()
+        player.on_press(self.move)
+        player.on_leave(self.leave)
 
     def check(self, _state):
         return self.game
+
+    def leave(self):
+        self.game = None
 
     def run(self):
         while not self.killed:
@@ -172,49 +182,15 @@ class State(BaseState):
 
             sleep(0.05)
 
-    def receive(self):
-        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-            s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-            s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
-            s.bind(("0.0.0.0", 3564))
-            s.listen()
-            while not self.killed:
-                conn, addr = s.accept()
-                threading.Thread(target=self.msg, args=(conn, addr)).start()
-
     def move(self, movement):
-        if not len(movement) == 4:
-            return
-
-        if movement[0] == "1":
+        if movement == "w":
             self.direction = [0, -1]
-        if movement[1] == "1":
+        elif movement == "a":
             self.direction = [-1, 0]
-        if movement[2] == "1":
+        elif movement == "s":
             self.direction = [0, 1]
-        if movement[3] == "1":
+        elif movement == "d":
             self.direction = [1, 0]
-
-    def msg(self, conn, _addr):
-        playing = False
-
-        while not self.killed:
-            data = b''
-            try:
-                data = conn.recv(7)
-                conn.send(b"_")
-            except Exception:
-                if playing:
-                    self.game = None
-            if not self.game:
-                playing = True
-                self.game = Game()
-
-            request = data.decode().strip()
-            if not playing:
-                continue
-
-            self.move(request)
 
 
 class Enemy:
