@@ -34,7 +34,7 @@ class Game:
         for player in self.players:
             player.reset()
 
-    def checkCollision(self, orientation, player_pos):
+    def check_collision(self, orientation, player_pos):
         for player in self.players:
             if player.orientation != orientation:
                 continue
@@ -80,13 +80,13 @@ class Game:
         self.ball.move()
         # bounce on the players OR assign score and serve again
         if self.ball.x <= 0:
-            self.checkCollision("vertical", 0)
+            self.check_collision("vertical", 0)
         if self.ball.x >= self.dims["width"]:
-            self.checkCollision("vertical", self.dims["width"] - 1)
+            self.check_collision("vertical", self.dims["width"] - 1)
         if self.ball.y <= 0:
-            self.checkCollision("horizontal", 0)
+            self.check_collision("horizontal", 0)
         if self.ball.y >= self.dims["height"]:
-            self.checkCollision("horizontal", self.dims["height"] - 1)
+            self.check_collision("horizontal", self.dims["height"] - 1)
         # check winner
         for player in self.players:
             if player.score >= 11:
