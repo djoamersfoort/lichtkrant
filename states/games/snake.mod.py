@@ -1,4 +1,3 @@
-import threading
 from random import randrange
 from time import sleep
 
