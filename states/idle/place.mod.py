@@ -61,7 +61,7 @@ class State(BaseState):
     def info(self):
         font_path = "/usr/share/fonts/truetype/noto/NotoMono-Regular.ttf"
         font = ImageFont.truetype(font_path, size=10)
-        msg = "Draw on\nplace.sverben.nl"
         draw = ImageDraw.Draw(self.image)
-        w, h = draw.textsize(msg)
-        draw.text(((self.W - w) / 2, (self.H - h) / 2), msg, fill="black", font=font)
+        draw.text((self.W / 2, 6), "Draw along on", fill="white", anchor="mt", stroke_fill="black", stroke_width=2, font=font)
+        draw.text((self.W / 2, 18), "place.sverben.nl", fill="cyan", anchor="mt", stroke_fill="black", stroke_width=2, font=font)
+        sleep(3)
