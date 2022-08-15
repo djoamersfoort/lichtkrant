@@ -1,6 +1,4 @@
-import socket
 from math import fabs
-from threading import Thread
 from time import sleep
 
 from PIL import Image, ImageDraw, ImageFont
@@ -147,10 +145,24 @@ class Player:
         self.right = False
         self.airborne = False
 
-    def process(self, response):
-        self.left = response[0] == "1"
-        self.right = response[1] == "1"
-        self.jumping = response[2] == "1"
+    def press(self, key):
+        if key == "a":
+            self.left = True
+        elif key == "d":
+            self.right = True
+        elif key == "w":
+            self.jumping = True
+
+    def release(self, key):
+        if key == "a":
+            self.left = False
+        elif key == "d":
+            self.right = False
+        elif key == "w":
+            self.jumping = False
+
+    def leave(self):
+        self.conn = None
 
 
 class State(BaseState):
@@ -163,58 +175,29 @@ class State(BaseState):
 
     def __init__(self):
         super().__init__()
-        Thread(target=self.receive).start()
+        self.is_game = True
+
+    def add_player(self, player):
+        if not self.game:
+            self.game = Game()
+        if not self.game.p1.conn:
+            self.game.p1.conn = player
+            player.set_color("#FFD900")
+            player.data["player"] = self.game.p1
+        elif not self.game.p2.conn:
+            self.game.p2.conn = player
+            player.set_color("#00AE00")
+            player.data["player"] = self.game.p2
+        else:
+            return
+
+        player.on_press(player.data["player"].press)
+        player.on_release(player.data["player"].release)
+        player.on_leave(player.data["player"].leave)
 
     # module check function
     def check(self, _state):
         return self.game
-
-    # socket gezeik
-    def receive(self):
-        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-            s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-            s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
-            s.bind(("0.0.0.0", 42069))
-            s.listen()
-            while not self.killed:
-                conn, addr = s.accept()
-                Thread(target=self.msg, args=(conn, addr)).start()
-
-    def msg(self, conn, _addr):
-        while not self.killed:
-            data = b''
-            try:
-                data = conn.recv(3)
-                conn.send(b"_")  # tyf een underscore om te melden dat je verbonden bent
-            except Exception:
-                if self.game.p1.conn == conn:
-                    self.game.reset()
-                    self.game.p1.conn = None
-                    self.game.p1.score = 0
-                    self.game.p2.score = 0
-                if self.game.p2.conn == conn:
-                    self.game.reset()
-                    self.game.p2.conn = None
-                    self.game.p1.score = 0
-                    self.game.p2.score = 0
-                if not self.game.p1.conn and not self.game.p2.conn:
-                    self.game = None
-                break
-            if not self.game:
-                self.game = Game()
-            if self.game.p1.conn is not conn and self.game.p2.conn is not conn:
-                if not self.game.p1.conn:
-                    self.game.p1.conn = conn
-                    conn.send(b'#FFD900')
-                elif not self.game.p2.conn:
-                    self.game.p2.conn = conn
-                    conn.send(b'#00AE00')
-            request = data.decode().strip()
-            if request:
-                if self.game.p1.conn == conn:
-                    self.game.p1.process(request)
-                elif self.game.p2.conn == conn:
-                    self.game.p2.process(request)
 
     # module runner
     def run(self):

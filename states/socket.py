@@ -26,7 +26,7 @@ class Socket(Thread):
         def join(sid, game):
             if sid in self.players:
                 return
-            player = Player(sid)
+            player = Player(self.sio, sid)
             self.players[sid] = player
             self.main.add_player(game, player)
 
@@ -58,12 +58,14 @@ class Socket(Thread):
 
 
 class Player:
-    def __init__(self, sid):
+    def __init__(self, sio, sid):
+        self.sio = sio
         self.sid = sid
         self.pressListeners = []
         self.releaseListeners = []
         self.leaveListeners = []
         self.colorListeners = []
+        self.data = {}
 
     def on_press(self, listener):
         self.pressListeners.append(listener)
@@ -76,6 +78,9 @@ class Player:
 
     def on_color(self, listener):
         self.colorListeners.append(listener)
+
+    def set_color(self, code):
+        self.sio.emit("color", code, room=self.sid)
 
     def key_down(self, key):
         for listener in self.pressListeners:
