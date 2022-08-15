@@ -107,6 +107,7 @@ class Game:
     def update(self, tick):
         for player in self.players:
             if not player.active:
+                self.players.remove(player)
                 continue
             speed = 30 - round(len(player.elements) / 2)
             speed = max(speed, 5)
