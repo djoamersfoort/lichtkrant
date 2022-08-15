@@ -1,6 +1,4 @@
 import json
-import socket
-import threading
 from random import choice
 from time import sleep
 
