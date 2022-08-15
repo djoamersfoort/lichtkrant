@@ -1,5 +1,4 @@
 import threading
-import socket
 from random import choice
 from time import sleep, time
 
