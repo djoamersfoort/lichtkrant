@@ -35,7 +35,7 @@ class LichtKrant:
         if game not in self.states:
             return None
         state = self.states[game]
-        if not state.is_game:
+        if not state.player_class:
             return None
         return state
 

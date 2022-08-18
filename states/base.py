@@ -16,7 +16,7 @@ class BaseState(Thread):
         super().__init__()
         self.killed = False
         self.on_pi = which("rpi-update")
-        self.is_game = False
+        self.player_class = None
 
     def kill(self) -> None:
         self.killed = True
