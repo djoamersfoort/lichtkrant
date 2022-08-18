@@ -19,9 +19,9 @@ class Game:
     def __init__(self):
         self.p1 = Player(x=self.p1_x)
         self.p2 = Player(x=self.p2_x)
-        self.background = Image.open("./static/splash_assets/background.gif").convert(mode="RGB")
-        self.p1_img = Image.open("./static/splash_assets/Karakter1.gif").convert(mode="RGB")
-        self.p2_img = Image.open("./static/splash_assets/Karakter2.gif").convert(mode="RGB")
+        self.background = Image.open("./static/game_assets/splash/background.gif").convert(mode="RGB")
+        self.p1_img = Image.open("./static/game_assets/splash/Karakter1.gif").convert(mode="RGB")
+        self.p2_img = Image.open("./static/game_assets/splash/Karakter2.gif").convert(mode="RGB")
 
     def update(self):
         # connection updating
