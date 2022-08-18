@@ -1,6 +1,7 @@
 from threading import Thread
 import socketio
 import eventlet
+from states.base import BaseState
 
 
 class Socket(Thread):
@@ -68,9 +69,9 @@ class Socket(Thread):
 
 class BasePlayer:
     def __init__(self, sio: socketio.Server, sid: str, game: BaseState):
-        self.sio = data["sio"]
-        self.sid = data["sid"]
-        self.game = data["game"]
+        self.sio = sio
+        self.sid = sid
+        self.game = game
 
     def on_press(self, key):
         return

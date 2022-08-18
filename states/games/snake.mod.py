@@ -10,8 +10,8 @@ DIMENSIONS = (96, 32)
 
 
 class Player(BasePlayer):
-    def __init__(self, data):
-        super().__init__(data)
+    def __init__(self, sio, sid, game):
+        super().__init__(sio, sid, game)
         self.active = True
         self.color = "FFFFFF"
         self.direction = (0, 1)
