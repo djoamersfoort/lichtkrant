@@ -67,7 +67,7 @@ class Socket(Thread):
 
 
 class BasePlayer:
-    def __init__(self, data):
+    def __init__(self, sio: socketio.Server, sid: str, game: BaseState):
         self.sio = data["sio"]
         self.sid = data["sid"]
         self.game = data["game"]
