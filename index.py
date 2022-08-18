@@ -30,14 +30,14 @@ class LichtKrant:
         module = spec.loader.load_module()
         return module, name
 
-    def add_player(self, game, player):
+    def get_game(self, game):
         self.read_states()
         if game not in self.states:
-            return
+            return None
         state = self.states[game]
         if not state.is_game:
-            return
-        state.add_player(player)
+            return None
+        return state
 
     def read_modules(self, location: str) -> List[Any]:
         # loading state modules

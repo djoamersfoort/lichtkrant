@@ -4,13 +4,14 @@ from time import sleep
 from PIL import Image, ImageDraw
 
 from states.base import BaseState
+from states.socket import BasePlayer
 
 DIMENSIONS = (96, 32)
 
 
-class Player:
-    def __init__(self, socket, state):
-        self.socket = socket
+class Player(BasePlayer):
+    def __init__(self, data):
+        super().__init__(data)
         self.active = True
         self.color = "FFFFFF"
         self.direction = (0, 1)
@@ -18,15 +19,11 @@ class Player:
         self.elements = [(DIMENSIONS[0] / 2, DIMENSIONS[1] / 2), (DIMENSIONS[0] / 2, DIMENSIONS[1] - 1)]
         self.size = 2
         self.dead = False
-        self.state = state
-        socket.on_color(self.set_color)
-        socket.on_press(self.turn)
-        socket.on_leave(self.leave)
 
-    def set_color(self, color):
+    def on_color(self, color):
         self.color = color.lstrip("#")
 
-    def leave(self):
+    def on_leave(self):
         self.active = False
 
     def reset(self):
@@ -43,7 +40,7 @@ class Player:
 
         return False
 
-    def turn(self, direction):
+    def on_press(self, direction):
         if direction == "w":
             self.direction = (0, -1)
         elif direction == "a":
@@ -97,7 +94,7 @@ class Game:
         self.state = state
 
     def add_player(self, player):
-        self.players.append(Player(player, self.state))
+        self.players.append(player)
         self.apples.append(Apple())
 
     @staticmethod
@@ -157,7 +154,7 @@ class State(BaseState):
         self.name = "snake"
         self.index = 8
         self.delay = 5
-        self.is_game = True
+        self.player_class = Player
         self.game = Game(self)
 
     def add_player(self, player):

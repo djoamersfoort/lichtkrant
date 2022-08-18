@@ -95,16 +95,16 @@ An example Game state file:
 ```python
 import sys
 from time import sleep
-from states.base import BaseState
 
-class Player:
-    def __init__(self, socket):
-        socket.on_press(self.press)
-        socket.on_release(self.release)
+from states.base import BaseState
+from states.socket import BasePlayer
+
+class Player(BasePlayer):
+    def __init__(self, data):
+        super().__init__(data)
         self.movement = [0, 0]
-        self.socket = socket
     
-    def press(self, key):
+    def on_press(self, key):
         if key == "w":
             self.movement[1] = 1
         elif key == "a":
@@ -114,7 +114,7 @@ class Player:
         elif key == "d":
             self.movement[0] = 1
     
-    def release(self, key):
+    def on_release(self, key):
         if key == "w":
             self.movement[1] = 0
         elif key == "a":
@@ -123,13 +123,16 @@ class Player:
             self.movement[1] = 0
         elif key == "d":
             self.movement[0] = 0
+            
+    def on_leave(self):
+        self.game.leave(self)
 
 # The state class must be called 'State' and extend BaseState for things to work
 class State(BaseState):
     # give the state a name
     # this name should be unique!
     name = "example"
-    is_game = True
+    player_class = Player
     players = []
 
     # the state with the highest index is shown
@@ -146,16 +149,10 @@ class State(BaseState):
         return len(self.players) > 0
     
     def add_player(self, player):
-        self.players.append(Player(player))
-        # set use_player_on_leave flag to use player object when they leave
-        player.data["use_player_on_leave"] = True
-        player.on_leave(self.leave)
+        self.players.append(player)
 
     def leave(self, player):
-        for index, player in enumerate(self.players):
-            if player.socket == player:
-                del self.players[index]
-                return
+        self.players.remove(player)
         
     # a function that is called when running the module
     # in this case it just fills the screen with white

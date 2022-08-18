@@ -18,7 +18,8 @@ class Socket(Thread):
     def remove_player(self, sid):
         if sid not in self.players:
             return
-        self.players[sid].remove()
+        player = self.players[sid]
+        player.on_leave()
         del self.players[sid]
 
     def register_events(self):
@@ -26,9 +27,17 @@ class Socket(Thread):
         def join(sid, game):
             if sid in self.players:
                 return
-            player = Player(self.sio, sid)
+            game = self.main.get_game(game)
+            if game is None:
+                return
+
+            player = game.player_class({
+                "game": game,
+                "sio": self.sio,
+                "sid": sid
+            })
             self.players[sid] = player
-            self.main.add_player(game, player)
+            game.add_player(player)
 
         @self.sio.event
         def leave(sid):
@@ -42,74 +51,38 @@ class Socket(Thread):
         def color(sid, new):
             if sid not in self.players:
                 return
-            self.players[sid].color(new)
+            self.players[sid].on_color(new)
 
         @self.sio.event
         def key_down(sid, key):
             if sid not in self.players:
                 return
-            self.players[sid].key_down(key)
+            self.players[sid].on_press(key)
 
         @self.sio.event
         def key_up(sid, key):
             if sid not in self.players:
                 return
-            self.players[sid].key_up(key)
+            self.players[sid].on_release(key)
 
 
-class Player:
-    def __init__(self, sio, sid):
-        self.sio = sio
-        self.sid = sid
-        self.pressListeners = []
-        self.releaseListeners = []
-        self.leaveListeners = []
-        self.colorListeners = []
-        self.data = {}
+class BasePlayer:
+    def __init__(self, data):
+        self.sio = data["sio"]
+        self.sid = data["sid"]
+        self.game = data["game"]
 
-    def on_press(self, listener):
-        self.pressListeners.append(listener)
+    def on_press(self, key):
+        return
 
-    def on_release(self, listener):
-        self.releaseListeners.append(listener)
+    def on_release(self, key):
+        return
 
-    def on_leave(self, listener):
-        self.leaveListeners.append(listener)
+    def on_color(self, code):
+        return
 
-    def on_color(self, listener):
-        self.colorListeners.append(listener)
+    def on_leave(self):
+        return
 
     def set_color(self, code):
         self.sio.emit("color", code, room=self.sid)
-
-    def get_flag(self, flag):
-        return flag in self.data and self.data[flag]
-
-    def key_down(self, key):
-        for listener in self.pressListeners:
-            if self.get_flag("use_player_in_key"):
-                listener(self, key)
-            else:
-                listener(key)
-
-    def key_up(self, key):
-        for listener in self.releaseListeners:
-            if self.get_flag("use_player_in_key"):
-                listener(self, key)
-            else:
-                listener(key)
-
-    def color(self, new):
-        if len(new) == 7 and new.startswith("#"):
-            for listener in self.colorListeners:
-                if self.get_flag("use_player_in_color"):
-                    listener(self, new)
-                else:
-                    listener(new)
-
-    def remove(self):
-        for listener in self.leaveListeners:
-            if self.get_flag("use_player_in_leave"):
-                listener(self)
-            else:
-                listener()
