@@ -1,5 +1,6 @@
 from abc import abstractmethod
 from threading import Thread
+from typing import Dict
 
 import eventlet
 import socketio
@@ -11,7 +12,7 @@ class Socket(Thread):
     def __init__(self, main):
         super().__init__()
         self.main = main
-        self.players = {}
+        self.players: Dict[str, BasePlayer] = {}
         self.sio = socketio.Server(cors_allowed_origins='*')
         self.app = socketio.WSGIApp(self.sio)
         self.register_events()
@@ -31,11 +32,11 @@ class Socket(Thread):
         def join(sid: str, game: str):
             if sid in self.players:
                 return
-            game = self.main.get_game(game)
+            game: BaseState = self.main.get_game(game)
             if game is None:
                 return
 
-            player = game.player_class(game, self.sio, sid)
+            player: BasePlayer = game.player_class(game, self.sio, sid)
             self.players[sid] = player
             game.add_player(player)
 
