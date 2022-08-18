@@ -20,8 +20,8 @@ class Player(BasePlayer):
         self.size = 2
         self.dead = False
 
-    def on_color(self, color):
-        self.color = color.lstrip("#")
+    def on_color(self, code):
+        self.color = code.lstrip("#")
 
     def on_leave(self):
         self.active = False
@@ -40,14 +40,14 @@ class Player(BasePlayer):
 
         return False
 
-    def on_press(self, direction):
-        if direction == "w":
+    def on_press(self, key):
+        if key == "w":
             self.direction = (0, -1)
-        elif direction == "a":
+        elif key == "a":
             self.direction = (-1, 0)
-        elif direction == "s":
+        elif key == "s":
             self.direction = (0, 1)
-        elif direction == "d":
+        elif key == "d":
             self.direction = (1, 0)
 
     def newPos(self):
