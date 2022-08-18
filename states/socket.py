@@ -32,11 +32,7 @@ class Socket(Thread):
             if game is None:
                 return
 
-            player = game.player_class({
-                "game": game,
-                "sio": self.sio,
-                "sid": sid
-            })
+            player = game.player_class(game, self.sio, sid)
             self.players[sid] = player
             game.add_player(player)
 
