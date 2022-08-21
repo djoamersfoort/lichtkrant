@@ -5,6 +5,7 @@ from time import sleep
 from PIL import Image, ImageDraw
 
 from states.base import BaseState
+from states.socket import BasePlayer
 
 
 class Game:
@@ -144,6 +145,31 @@ class Game:
             self.lost = True
 
 
+class Player(BasePlayer):
+    def __init__(self, sio, sid, game):
+        super().__init__(sio, sid, game)
+        self.playing = False
+
+    def on_press(self, key):
+        if not self.playing:
+            return
+
+        if key == "w":
+            self.game.direction = [0, -1]
+        elif key == "a":
+            self.game.direction = [-1, 0]
+        elif key == "s":
+            self.game.direction = [0, 1]
+        elif key == "d":
+            self.game.direction = [1, 0]
+
+    def on_leave(self):
+        if not self.playing:
+            return
+
+        self.game.game = None
+
+
 class State(BaseState):
     name = "pacman"
     index = 8
@@ -154,20 +180,16 @@ class State(BaseState):
 
     def __init__(self):
         super().__init__()
-        self.is_game = True
+        self.player_class = Player
 
     def add_player(self, player):
         if self.game:
             return
+        player.playing = True
         self.game = Game()
-        player.on_press(self.move)
-        player.on_leave(self.leave)
 
     def check(self, _state):
         return self.game
-
-    def leave(self):
-        self.game = None
 
     def run(self):
         while not self.killed:
@@ -179,16 +201,6 @@ class State(BaseState):
                     self.game = Game()
 
             sleep(0.05)
-
-    def move(self, movement):
-        if movement == "w":
-            self.direction = [0, -1]
-        elif movement == "a":
-            self.direction = [-1, 0]
-        elif movement == "s":
-            self.direction = [0, 1]
-        elif movement == "d":
-            self.direction = [1, 0]
 
 
 class Enemy:
