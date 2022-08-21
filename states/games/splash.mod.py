@@ -4,6 +4,42 @@ from time import sleep
 from PIL import Image, ImageDraw, ImageFont
 
 from states.base import BaseState
+from states.socket import BasePlayer
+
+
+class Connection(BasePlayer):
+    def __init__(self, sio, sid, game):
+        super().__init__(sio, sid, game)
+        self.player = None
+
+    def on_press(self, key):
+        if not self.player:
+            return
+
+        if key == "a":
+            self.player.left = True
+        elif key == "d":
+            self.player.right = True
+        elif key == "w":
+            self.player.jumping = True
+
+    def on_release(self, key):
+        if not self.player:
+            return
+
+        if key == "a":
+            self.player.left = False
+        elif key == "d":
+            self.player.right = False
+        elif key == "w":
+            self.player.jumping = False
+
+    def init(self, color, player):
+        self.player = player
+        self.set_color(color)
+
+    def on_leave(self):
+        self.player.conn = None
 
 
 class Game:
@@ -145,25 +181,6 @@ class Player:
         self.right = False
         self.airborne = False
 
-    def press(self, key):
-        if key == "a":
-            self.left = True
-        elif key == "d":
-            self.right = True
-        elif key == "w":
-            self.jumping = True
-
-    def release(self, key):
-        if key == "a":
-            self.left = False
-        elif key == "d":
-            self.right = False
-        elif key == "w":
-            self.jumping = False
-
-    def leave(self):
-        self.conn = None
-
 
 class State(BaseState):
     # module information
@@ -175,25 +192,19 @@ class State(BaseState):
 
     def __init__(self):
         super().__init__()
-        self.is_game = True
+        self.player_class = Connection
 
     def add_player(self, player):
         if not self.game:
             self.game = Game()
         if not self.game.p1.conn:
             self.game.p1.conn = player
-            player.set_color("#FFD900")
-            player.data["player"] = self.game.p1
+            player.init("#FFD900", self.game.p1)
         elif not self.game.p2.conn:
             self.game.p2.conn = player
-            player.set_color("#00AE00")
-            player.data["player"] = self.game.p2
+            player.init("#00AE00", self.game.p2)
         else:
             return
-
-        player.on_press(player.data["player"].press)
-        player.on_release(player.data["player"].release)
-        player.on_leave(player.data["player"].leave)
 
     # module check function
     def check(self, _state):
@@ -201,7 +212,7 @@ class State(BaseState):
 
     # module runner
     def run(self):
-        font_path = "/usr/share/fonts/truetype/noto/NotoMono-Regular.ttf"
+        font_path = "/Library/Fonts/Arial Unicode.ttf"
         font8 = ImageFont.truetype(font_path, size=8)
         font12 = ImageFont.truetype(font_path, size=12)
         font14 = ImageFont.truetype(font_path, size=14)
