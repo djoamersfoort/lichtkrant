@@ -13,7 +13,7 @@ class Game:
         self.image = Image.new("RGB", (96, 32), "black")
         self.draw = ImageDraw.Draw(self.image)
         self.food = 0
-        with open("./static/pacman_assets/map.json", encoding="utf-8") as f:
+        with open("./static/game_assets/pacman/map.json", encoding="utf-8") as f:
             self.map = json.load(f)
         self.direction = [1, 0]
         self.prepare()

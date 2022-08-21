@@ -25,6 +25,9 @@ class BaseState(Thread):
     def check(self, space_state: dict) -> bool:
         return True
 
+    def add_player(self, _player: "BasePlayer"):
+        pass
+
     def output_image(self, pil_image: Image) -> None:
         stdout.buffer.write(pil_image.tobytes())
 

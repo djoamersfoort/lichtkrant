@@ -1,6 +1,10 @@
+from abc import abstractmethod
 from threading import Thread
-import socketio
+from typing import Dict
+
 import eventlet
+import socketio
+
 from states.base import BaseState
 
 
@@ -8,7 +12,7 @@ class Socket(Thread):
     def __init__(self, main):
         super().__init__()
         self.main = main
-        self.players = {}
+        self.players: Dict[str, BasePlayer] = {}
         self.sio = socketio.Server(cors_allowed_origins='*')
         self.app = socketio.WSGIApp(self.sio)
         self.register_events()
@@ -16,7 +20,7 @@ class Socket(Thread):
     def run(self):
         eventlet.wsgi.server(eventlet.listen(('', 5000)), self.app, log_output=False)
 
-    def remove_player(self, sid):
+    def remove_player(self, sid: str):
         if sid not in self.players:
             return
         player = self.players[sid]
@@ -25,39 +29,39 @@ class Socket(Thread):
 
     def register_events(self):
         @self.sio.event
-        def join(sid, game):
+        def join(sid: str, game: str):
             if sid in self.players:
                 return
-            game = self.main.get_game(game)
+            game: BaseState = self.main.get_game(game)
             if game is None:
                 return
 
-            player = game.player_class(self.sio, sid, game)
+            player: BasePlayer = game.player_class(self.sio, sid, game)
             self.players[sid] = player
             game.add_player(player)
 
         @self.sio.event
-        def leave(sid):
+        def leave(sid: str):
             self.remove_player(sid)
 
         @self.sio.event
-        def disconnect(sid):
+        def disconnect(sid: str):
             self.remove_player(sid)
 
         @self.sio.event
-        def color(sid, new):
+        def color(sid: str, new: str):
             if sid not in self.players:
                 return
             self.players[sid].on_color(new)
 
         @self.sio.event
-        def key_down(sid, key):
+        def key_down(sid: str, key: str):
             if sid not in self.players:
                 return
             self.players[sid].on_press(key)
 
         @self.sio.event
-        def key_up(sid, key):
+        def key_up(sid: str, key: str):
             if sid not in self.players:
                 return
             self.players[sid].on_release(key)
@@ -69,17 +73,18 @@ class BasePlayer:
         self.sid = sid
         self.game = game
 
-    def on_press(self, key):
+    @abstractmethod
+    def on_press(self, key: str):
         return
 
-    def on_release(self, key):
+    def on_release(self, _key: str):
         return
 
-    def on_color(self, code):
+    def on_color(self, _code: str):
         return
 
     def on_leave(self):
         return
 
-    def set_color(self, code):
+    def set_color(self, code: str):
         self.sio.emit("color", code, room=self.sid)
