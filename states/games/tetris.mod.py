@@ -1,8 +1,10 @@
 import threading
 from random import choice
 from time import sleep, time
+from typing import cast
 
 from states.base import BaseState
+from states.socket import BasePlayer
 
 
 GREY = [150, 150, 150]
@@ -121,6 +123,18 @@ class Game:
         # Call draw method of each board
         for board in self.boards:
             board.draw(pixels)
+
+
+class Player(BasePlayer):
+    def __init__(self, sio, sid, game):
+        super().__init__(sio, sid, game)
+        self.board = None
+
+    def on_press(self, key):
+        self.board.press(key)
+
+    def on_leave(self):
+        cast(self.game, State).leave(self)
 
 
 class Board:
@@ -350,7 +364,7 @@ class State(BaseState):
 
     def __init__(self):
         super().__init__()
-        self.is_game = True
+        self.player_class = Player
 
     def check(self, _state):
         return self.game
@@ -385,11 +399,9 @@ class State(BaseState):
             (board for board in self.game.boards if not board.player), None)
         if board:
             board.player = player
+            player.board = board
         else:
             return
-        player.data["use_player_in_leave"] = True
-        player.on_press(board.press)
-        player.on_leave(self.leave)
 
     def leave(self, player):
         index, board = next(((i, board) for (i, board) in enumerate(
