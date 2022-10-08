@@ -4,3 +4,4 @@ pillow==9.0.1
 requests
 python-socketio
 eventlet
+websocket-client
