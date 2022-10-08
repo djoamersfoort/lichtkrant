@@ -1,12 +1,11 @@
 import json
-import socket
-import threading
 from random import choice
 from time import sleep
 
 from PIL import Image, ImageDraw
 
 from states.base import BaseState
+from states.socket import BasePlayer
 
 
 class Game:
@@ -146,6 +145,31 @@ class Game:
             self.lost = True
 
 
+class Player(BasePlayer):
+    def __init__(self, sio, sid, game):
+        super().__init__(sio, sid, game)
+        self.playing = False
+
+    def on_press(self, key):
+        if not self.playing:
+            return
+
+        if key == "w":
+            self.game.direction = [0, -1]
+        elif key == "a":
+            self.game.direction = [-1, 0]
+        elif key == "s":
+            self.game.direction = [0, 1]
+        elif key == "d":
+            self.game.direction = [1, 0]
+
+    def on_leave(self):
+        if not self.playing:
+            return
+
+        self.game.game = None
+
+
 class State(BaseState):
     name = "pacman"
     index = 8
@@ -156,7 +180,13 @@ class State(BaseState):
 
     def __init__(self):
         super().__init__()
-        threading.Thread(target=self.receive).start()
+        self.player_class = Player
+
+    def add_player(self, player):
+        if self.game:
+            return
+        player.playing = True
+        self.game = Game()
 
     def check(self, _state):
         return self.game
@@ -171,50 +201,6 @@ class State(BaseState):
                     self.game = Game()
 
             sleep(0.05)
-
-    def receive(self):
-        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-            s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-            s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
-            s.bind(("0.0.0.0", 3564))
-            s.listen()
-            while not self.killed:
-                conn, addr = s.accept()
-                threading.Thread(target=self.msg, args=(conn, addr)).start()
-
-    def move(self, movement):
-        if not len(movement) == 4:
-            return
-
-        if movement[0] == "1":
-            self.direction = [0, -1]
-        if movement[1] == "1":
-            self.direction = [-1, 0]
-        if movement[2] == "1":
-            self.direction = [0, 1]
-        if movement[3] == "1":
-            self.direction = [1, 0]
-
-    def msg(self, conn, _addr):
-        playing = False
-
-        while not self.killed:
-            data = b''
-            try:
-                data = conn.recv(7)
-                conn.send(b"_")
-            except Exception:
-                if playing:
-                    self.game = None
-            if not self.game:
-                playing = True
-                self.game = Game()
-
-            request = data.decode().strip()
-            if not playing:
-                continue
-
-            self.move(request)
 
 
 class Enemy:

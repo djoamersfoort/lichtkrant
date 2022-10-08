@@ -16,6 +16,7 @@ class BaseState(Thread):
         super().__init__()
         self.killed = False
         self.on_pi = which("rpi-update")
+        self.player_class = None
 
     def kill(self) -> None:
         self.killed = True
@@ -23,6 +24,9 @@ class BaseState(Thread):
     @abstractmethod
     def check(self, space_state: dict) -> bool:
         return True
+
+    def add_player(self, _player: "BasePlayer"):
+        pass
 
     def output_image(self, pil_image: Image) -> None:
         stdout.buffer.write(pil_image.tobytes())

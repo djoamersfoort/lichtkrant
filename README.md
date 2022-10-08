@@ -84,6 +84,85 @@ class State(BaseState):
 
 By default, all state files are included, even in subdirectories. If you don't want this, set the flag `-r, --recursive` to false.
 
+## Game states
+
+Some states are games that can be controlled with [Lichtkrant Client](https://github.com/djoamersfoort/lichtkrant-client) or [Lichtkrant Client CLI](https://github.com/djoamersfoort/lichtkrant-client-cli).
+
+These states use socket.io for communication.
+
+An example Game state file:
+
+```python
+import sys
+from time import sleep
+
+from states.base import BaseState
+from states.socket import BasePlayer
+
+class Player(BasePlayer):
+    def __init__(self, data):
+        super().__init__(data)
+        self.movement = [0, 0]
+    
+    def on_press(self, key):
+        if key == "w":
+            self.movement[1] = 1
+        elif key == "a":
+            self.movement[0] = -1
+        elif key == "s":
+            self.movement[1] = -1
+        elif key == "d":
+            self.movement[0] = 1
+    
+    def on_release(self, key):
+        if key == "w":
+            self.movement[1] = 0
+        elif key == "a":
+            self.movement[0] = 0
+        elif key == "s":
+            self.movement[1] = 0
+        elif key == "d":
+            self.movement[0] = 0
+            
+    def on_leave(self):
+        self.game.leave(self)
+
+# The state class must be called 'State' and extend BaseState for things to work
+class State(BaseState):
+    # give the state a name
+    # this name should be unique!
+    name = "example"
+    player_class = Player
+    players = []
+
+    # the state with the highest index is shown
+    # if multiple states have the same index it will be randomly selected
+    index = 0
+
+    # delay in seconds to wait until the next update
+    delay = 60
+
+    # this function decides if the module will be shown
+    # the check function must return a boolean
+    # the spacestate is available as the first argument
+    def check(self, states):
+        return len(self.players) > 0
+    
+    def add_player(self, player):
+        self.players.append(player)
+
+    def leave(self, player):
+        self.players.remove(player)
+        
+    # a function that is called when running the module
+    # in this case it just fills the screen with white
+    def run(self):
+        while not self.killed:
+            sys.stdout.buffer.write(bytes([0xFF] * 3072))
+
+        sleep(1)
+```
+
 ## Contributing
 Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
 
