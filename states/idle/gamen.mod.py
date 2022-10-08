@@ -47,7 +47,7 @@ class State(BaseState):
 
     def run(self):
         scroll_y = 0
-        font_path = "/usr/share/fonts/truetype/noto/NotoMono-Regular.ttf"
+        font_path = "static/fonts/nm-games-font.ttf"
         font8 = ImageFont.truetype(font_path, size=8)
         font10 = ImageFont.truetype(font_path, size=10)
 
@@ -66,6 +66,6 @@ class State(BaseState):
                 draw.text((94, (i * 8 + 32) - scroll_y), "x" + str(count), fill=(0, 110, 210), anchor="rm", font=font8)
 
             self.output_image(image)
-            sleep(1)
-            self.elapsed += 1
+            sleep(0.5)
+            self.elapsed += 0.5
             scroll_y += len(self.gamers)
