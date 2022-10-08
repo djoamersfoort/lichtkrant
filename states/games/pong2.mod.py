@@ -1,6 +1,7 @@
 import math
 from random import choice
 from time import sleep, time
+from typing import cast
 
 from states.base import BaseState
 from states.socket import BasePlayer
@@ -16,25 +17,25 @@ class Game:
         self.dims = dims
         h = self.dims["height"]
         w = self.dims["width"]
-        self.boards = []
-        self.boards.append(Paddle(start_pos=0, bounds=(0, h)))
-        self.boards.append(Paddle(start_pos=w - 1, bounds=(0, h)))
-        self.boards.append(Paddle(start_pos=0, bounds=(0, 32), orientation="horizontal"))
-        self.boards.append(Paddle(start_pos=0, bounds=(32, 64), orientation="horizontal"))
-        self.boards.append(Paddle(start_pos=0, bounds=(64, 96), orientation="horizontal"))
-        self.boards.append(Paddle(start_pos=h - 1, bounds=(0, 32), orientation="horizontal"))
-        self.boards.append(Paddle(start_pos=h - 1, bounds=(32, 64), orientation="horizontal"))
-        self.boards.append(Paddle(start_pos=h - 1, bounds=(64, 96), orientation="horizontal"))
+        self.paddles = []
+        self.paddles.append(Paddle(start_pos=0, bounds=(0, h)))
+        self.paddles.append(Paddle(start_pos=w - 1, bounds=(0, h)))
+        self.paddles.append(Paddle(start_pos=0, bounds=(0, 32), orientation="horizontal"))
+        self.paddles.append(Paddle(start_pos=0, bounds=(32, 64), orientation="horizontal"))
+        self.paddles.append(Paddle(start_pos=0, bounds=(64, 96), orientation="horizontal"))
+        self.paddles.append(Paddle(start_pos=h - 1, bounds=(0, 32), orientation="horizontal"))
+        self.paddles.append(Paddle(start_pos=h - 1, bounds=(32, 64), orientation="horizontal"))
+        self.paddles.append(Paddle(start_pos=h - 1, bounds=(64, 96), orientation="horizontal"))
         self.ball = Ball(self.dims)
         self.reset()
 
     def reset(self):
         self.ball.reset()
-        for player in self.boards:
+        for player in self.paddles:
             player.reset()
 
     def check_collision(self, orientation, player_pos):
-        for player in self.boards:
+        for player in self.paddles:
             if player.orientation != orientation:
                 continue
             if orientation == "vertical":
@@ -68,9 +69,9 @@ class Game:
         self.ball.reset()
 
     def update(self):
-        if not self.boards[0].ishuman or not self.boards[1].ishuman:
+        if not self.paddles[0].ishuman or not self.paddles[1].ishuman:
             return
-        for player in self.boards:
+        for player in self.paddles:
             if player.has_won:
                 sleep(5)
                 self.reset()
@@ -87,7 +88,7 @@ class Game:
         if self.ball.y >= self.dims["height"]:
             self.check_collision("horizontal", self.dims["height"] - 1)
         # check winner
-        for player in self.boards:
+        for player in self.paddles:
             if player.score >= 11:
                 player.has_won = True
 
@@ -149,6 +150,13 @@ class Player(BasePlayer):
     def on_leave(self):
         self.paddle.player = None
         self.paddle.ishuman = False
+        total_players = 0
+        game = cast(State, self.game)
+        for player in game.game.paddles:
+            if player.ishuman:
+                total_players += 1
+        if total_players == 0:
+            game.game = None
 
 
 class Ball:
@@ -208,7 +216,7 @@ class State(BaseState):
             ball_x = min(max(0, ball.x), self.game.dims["width"] - 1)
             ball_y = min(max(0, ball.y), self.game.dims["height"] - 1)
             pixels[round(ball_y)][round(ball_x)] = WHITE
-            for player in self.game.boards:
+            for player in self.game.paddles:
                 if not player.ishuman:
                     continue
                 if player.orientation == "vertical":
@@ -218,7 +226,7 @@ class State(BaseState):
                     for x in range(player.x, player.x + player.height):
                         pixels[player.y][x] = player.color()
             scores = []
-            for player in self.game.boards:
+            for player in self.game.paddles:
                 if not player.ishuman:
                     continue
                 if player.orientation == "vertical":
@@ -251,7 +259,7 @@ class State(BaseState):
         if not self.game:
             self.game = Game({"width": self.winw, "height": self.winh})
         paddle = next(
-            (paddle for paddle in self.game.boards if not paddle.player), None)
+            (paddle for paddle in self.game.paddles if not paddle.player), None)
         if paddle:
             paddle.player = player
             paddle.ishuman = True
