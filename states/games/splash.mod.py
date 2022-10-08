@@ -1,5 +1,6 @@
 from math import fabs
 from time import sleep
+from typing import cast
 
 from PIL import Image, ImageDraw, ImageFont
 
@@ -40,6 +41,9 @@ class Connection(BasePlayer):
 
     def on_leave(self):
         self.player.conn = None
+        game = cast(State, self.game)
+        if not game.game.p1.conn and not game.game.p2.conn:
+            self.game.game = None
 
 
 class Game:
