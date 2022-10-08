@@ -134,7 +134,7 @@ class Player(BasePlayer):
         self.board.press(key)
 
     def on_leave(self):
-        cast(self.game, State).leave(self)
+        cast(State, self.game).leave(self)
 
 
 class Board:
