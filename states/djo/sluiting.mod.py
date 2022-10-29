@@ -1,5 +1,6 @@
 from datetime import datetime
 from math import floor
+import sys
 from time import sleep
 
 import requests
@@ -21,9 +22,9 @@ class State(BaseState):
         for i in range(solar_system_fragment_length)]
 
     # requests data
-    queue_uri = "http://music.djoamersfoort.nl/mopidy/rpc"
+    queue_uri = "http://music.djoamersfoort.nl:6680/mopidy/rpc"
     queue_data = {"jsonrpc": "2.0", "id": 1, "method": "core.tracklist.add",
-                  "params": {"uris": ["local:track:nathan/afsluiting.mp3"]}}
+                  "params": {"uris": ["file:///data/PizzaMeneer/afsluiting.mp3"]}}
 
     # module check function
     def check(self, _state):
@@ -42,10 +43,11 @@ class State(BaseState):
             response = requests.post(self.queue_uri, json=self.queue_data, timeout=5)
             tlid = response.json()["result"][0]["tlid"]
             requests.post(self.queue_uri,
-                          json={"jsonrpc": "2.0", "id": 1, "method": "core.playback.play", "params": {"tlid": tlid}},
-                          timeout=5)
-        except Exception:
-            pass
+             json={"jsonrpc": "2.0", "id": 1, "method": "core.playback.play", "params": {"tlid": tlid}}, timeout=5)
+            requests.post(self.queue_uri,
+             json={"jsonrpc": "2.0", "id": 1, "method": "core.mixer.set_volume", "params": {"volume": 100}}, timeout=5)
+        except Exception as e:
+            print(str(e), file=sys.stderr)
 
     # module runner
     def run(self):
