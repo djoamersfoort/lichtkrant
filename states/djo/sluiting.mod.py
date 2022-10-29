@@ -40,15 +40,14 @@ class State(BaseState):
     def queue_song(self):
         # get tlid and play sluiting track
         try:
-            response = requests.post(self.queue_uri, json=self.queue_data)
+            response = requests.post(self.queue_uri, json=self.queue_data, timeout=5)
             tlid = response.json()["result"][0]["tlid"]
             requests.post(self.queue_uri,
-                    json={"jsonrpc": "2.0", "id": 1, "method": "core.playback.play", "params": {"tlid": tlid}})
+                    json={"jsonrpc": "2.0", "id": 1, "method": "core.playback.play", "params": {"tlid": tlid}}, timeout=5)
             requests.post(self.queue_uri,
-                    json={"jsonrpc": "2.0", "id": 1, "method": "core.mixer.set_volume", "params": {"volume": 100}})
+                    json={"jsonrpc": "2.0", "id": 1, "method": "core.mixer.set_volume", "params": {"volume": 100}}, timeout=5)
         except Exception as e:
             print(str(e), file=sys.stderr)
-
 
     # module runner
     def run(self):

@@ -19,7 +19,7 @@ class State(BaseState):
     @staticmethod
     def get_response():
         try:
-            response = requests.get("https://api.nm-games.eu/djo")
+            response = requests.get("https://api.nm-games.eu/djo", timeout=5)
         except requests.RequestException:
             return {}
         if not response.ok:

@@ -24,7 +24,7 @@ class State(BaseState):
         return True
 
     def get_data(self):
-        req = requests.get(self.url)
+        req = requests.get(self.url, timeout=5)
         data = json.loads(req.text)
         return data['forecasts']
 
