@@ -19,7 +19,7 @@ class State(BaseState):
     @staticmethod
     def get_results():
         try:
-            response = requests.get("https://dictee.djoamersfoort.nl/lichtkrant-api")
+            response = requests.get("https://dictee.djoamersfoort.nl/lichtkrant-api", timeout=5)
         except requests.RequestException:
             return []
         if not response.ok:
