@@ -18,7 +18,7 @@ class State(BaseState):
     @staticmethod
     def get_names():
         try:
-            response = requests.get("https://corvee.djoamersfoort.nl/api/v1/selected")
+            response = requests.get("https://corvee.djoamersfoort.nl/api/v1/selected", timeout=5)
         except requests.exceptions.RequestException:
             return {}
         if not response.ok:
