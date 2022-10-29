@@ -20,9 +20,9 @@ class State(BaseState):
 
     def __init__(self):
         super().__init__()
-        self.sio.on("place", self.place)
+        self.sio.on("board", self.board)
         self.sio.on("color", self.color)
-        self.sio.connect("https://place.sverben.nl")
+        self.sio.connect("https://place.djoamersfoort.nl")
 
     # module check function
     def check(self, _state):
@@ -39,31 +39,32 @@ class State(BaseState):
         self.time = 0
         self.sio.disconnect()
 
-    def place(self, data):
-        self.tiles = data["place"]
-        self.palette = data["palette"]
+    def board(self, data):
+        self.tiles = data
         self.draw()
 
+    @staticmethod
+    def hex_to_rgb(code):
+        code = code.lstrip("#")
+
+        return tuple(int(code[i:i + 2], 16) for i in (0, 2, 4))
+
     def color(self, data):
-        draw = ImageDraw.Draw(self.image)
-        color = self.palette[int(data["color"])]
-        draw.point((data["x"], data["y"]), (color[0], color[1], color[2]))
-        if self.time < 10:
-            self.info()
+        self.tiles[data["x"]][data["y"]] = data["color"]
+        self.draw()
 
     def draw(self):
         draw = ImageDraw.Draw(self.image)
-        for y, _ in enumerate(self.tiles):
-            for x, color in enumerate(self.tiles[y]):
-                color = self.palette[int(color)]
-                draw.point((x, y), (color[0], color[1], color[2]))
+        for x, column in enumerate(self.tiles):
+            for y, color in enumerate(column):
+                draw.point((x, y), self.hex_to_rgb(color))
+        if self.time < 10:
+            self.info()
 
     def info(self):
-        font_path = "/usr/share/fonts/truetype/noto/NotoMono-Regular.ttf"
-        font = ImageFont.truetype(font_path, size=10)
+        font = ImageFont.truetype(self.font_path, size=10)
         draw = ImageDraw.Draw(self.image)
         draw.text((self.W / 2, 6), "Draw along on", fill="white", anchor="mt",
             stroke_fill="black", stroke_width=2, font=font)
         draw.text((self.W / 2, 18), "place.sverben.nl", fill="cyan", anchor="mt",
             stroke_fill="black", stroke_width=2, font=font)
-        sleep(3)

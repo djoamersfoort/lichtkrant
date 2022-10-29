@@ -31,8 +31,7 @@ class State(BaseState):
     def get_image(self, data):
         is_rainy = False
 
-        font_path = "/usr/share/fonts/truetype/noto/NotoMono-Regular.ttf"
-        font = ImageFont.truetype(font_path, size=10)
+        font = ImageFont.truetype(self.font_path, size=10)
 
         image = Image.new("RGB", (96, 32))
         draw = ImageDraw.Draw(image)

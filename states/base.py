@@ -17,6 +17,7 @@ class BaseState(Thread):
         self.killed = False
         self.on_pi = which("rpi-update")
         self.player_class = None
+        self.font_path = "./static/fonts/NotoMono-Regular.ttf"
 
     def kill(self) -> None:
         self.killed = True

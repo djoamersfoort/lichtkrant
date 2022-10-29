@@ -21,7 +21,6 @@ class State(BaseState):
     # module runner
     def run(self):
         # shutdown text
-        font_path = "/usr/share/fonts/truetype/noto/NotoMono-Regular.ttf"
         text = "|PAUZE|"
 
         break_end = datetime.now()
@@ -31,7 +30,7 @@ class State(BaseState):
 
         while not self.killed:
             image = Image.new("RGB", (96, 32), "black")
-            font = ImageFont.truetype(font_path, size=20)
+            font = ImageFont.truetype(self.font_path, size=20)
 
             draw = ImageDraw.Draw(image)
             draw.text((48, 3), text, fill="orange", anchor="mt", font=font)
@@ -44,7 +43,7 @@ class State(BaseState):
 
             date_text = str(timedelta(seconds=diff_sec))
 
-            font = ImageFont.truetype(font_path, size=12)
+            font = ImageFont.truetype(self.font_path, size=12)
             draw.text((48, 29), date_text, fill="yellow", anchor="mb", font=font)
 
             if diff_sec == 0:

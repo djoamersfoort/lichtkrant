@@ -216,10 +216,9 @@ class State(BaseState):
 
     # module runner
     def run(self):
-        font_path = "/usr/share/fonts/truetype/noto/NotoMono-Regular.ttf"
-        font8 = ImageFont.truetype(font_path, size=8)
-        font12 = ImageFont.truetype(font_path, size=12)
-        font14 = ImageFont.truetype(font_path, size=14)
+        font8 = ImageFont.truetype(self.font_path, size=8)
+        font12 = ImageFont.truetype(self.font_path, size=12)
+        font14 = ImageFont.truetype(self.font_path, size=14)
 
         while not self.killed:
             if self.game:
