@@ -22,11 +22,10 @@ class State(BaseState):
 
         # shutdown text
         hal_path = "static/hal.png"
-        font = "/usr/share/fonts/truetype/noto/NotoMono-Regular.ttf"
         text = "Goodbye,\nDave."
 
         image = Image.new("RGB", (96, 32), "black")
-        font = ImageFont.truetype(font, size=13)
+        font = ImageFont.truetype(self.font_path, size=13)
 
         draw = ImageDraw.Draw(image)
         draw.text((34, 16), text, fill="red", anchor="lm", font=font, spacing=-2)

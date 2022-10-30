@@ -39,12 +39,11 @@ class State(BaseState):
         colors = [(randint(128, 255), randint(128, 255), randint(128, 255)) for _ in names["present"]]
         scroll_y = 0
         scroll_speed = 8
-        font_path = "/usr/share/fonts/truetype/noto/NotoMono-Regular.ttf"
         chosen = []
         fonts = {
-            "noto8": ImageFont.truetype(font_path, size=8),
-            "noto11": ImageFont.truetype(font_path, size=11),
-            "noto20": ImageFont.truetype(font_path, size=20)
+            "noto8": ImageFont.truetype(self.font_path, size=8),
+            "noto11": ImageFont.truetype(self.font_path, size=11),
+            "noto20": ImageFont.truetype(self.font_path, size=20)
         }
 
         while not self.killed:

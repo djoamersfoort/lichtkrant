@@ -32,11 +32,10 @@ class State(BaseState):
 
     def run(self):
         scroll_x = 0
-        font_path = "/usr/share/fonts/truetype/noto/NotoMono-Regular.ttf"
         fonts = {
-            "font9": ImageFont.truetype(font_path, size=9),
-            "font11": ImageFont.truetype(font_path, size=11),
-            "font16": ImageFont.truetype(font_path, size=16)
+            "font9": ImageFont.truetype(self.font_path, size=9),
+            "font11": ImageFont.truetype(self.font_path, size=11),
+            "font16": ImageFont.truetype(self.font_path, size=16)
         }
 
         while not self.killed:
