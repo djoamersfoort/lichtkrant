@@ -54,10 +54,8 @@ class State(BaseState):
                 draw.text((3, 2), "CORVEE", fill="white", anchor="lt", font=fonts["noto20"])
                 draw.text((92, 29), "tijd!", fill="white", anchor="rb", font=fonts["noto11"])
 
-                if elapsed % 0.2 < 0.1:
-                    if blink_invert:
-                        image = ImageOps.invert(image)
-                    blink_invert = not blink_invert
+                if elapsed % 1 < 0.5:
+                    image = ImageOps.invert(image)
             elif elapsed < 7:
                 draw.text((48, 16), "Wie o wie...", fill="yellow", anchor="mm", font=fonts["noto11"])
             elif elapsed < 10:
