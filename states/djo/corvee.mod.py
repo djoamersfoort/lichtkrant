@@ -34,7 +34,6 @@ class State(BaseState):
     # pylint: disable=too-many-branches
     def run(self):
         elapsed = 0
-        blink_invert = False
         names = self.get_names()
         colors = [(randint(128, 255), randint(128, 255), randint(128, 255)) for _ in names["present"]]
         scroll_y = 0
