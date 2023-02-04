@@ -1,7 +1,6 @@
 {
   "name": "Pac-Man",
   "id": "pacman",
-  "kwabbel": true,
   "description": "Pac-Man for lichtkrant",
   "color": {
     "from": "#E0C122",
