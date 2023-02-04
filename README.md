@@ -90,6 +90,9 @@ Some states are games that can be controlled with [Lichtkrant Client](https://gi
 
 These states use socket.io for communication.
 
+Every game is based on 2 files, Game state and Game meta. 
+Game State is a regular state file modified with a player class and the file location of the Game meta. Game meta is the configuration for Lichtkrant clients.
+
 An example Game state file:
 
 ```python
@@ -133,6 +136,7 @@ class State(BaseState):
     # this name should be unique!
     name = "example"
     player_class = Player
+    game_meta = "static/game_meta/GAME_NAME.json"
     players = []
 
     # the state with the highest index is shown
@@ -161,6 +165,35 @@ class State(BaseState):
             sys.stdout.buffer.write(bytes([0xFF] * 3072))
 
         sleep(1)
+```
+
+An example Game meta file: 
+```json
+{
+  "name": "My game",
+  "id": "state_id",
+  "description": "My game for lichtkrant",
+  "color": {
+    "from": "#E0C122",
+    "to": "#9B8618"
+  },
+  "keys": ["w", "a", "s", "d"],
+  "explanation": [
+    {
+      "type": "grid",
+      "layout": [
+        [null, "W", null],
+        ["A", null, "D"],
+        [null, "S", null]
+      ],
+      "description": "Movement keys"
+    }
+  ],
+  "colors": {
+    "visible": false,
+    "configurable": false
+  }
+}
 ```
 
 ## Contributing
