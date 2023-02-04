@@ -34,7 +34,6 @@ class State(BaseState):
     # pylint: disable=too-many-branches
     def run(self):
         elapsed = 0
-        blink_invert = False
         names = self.get_names()
         colors = [(randint(128, 255), randint(128, 255), randint(128, 255)) for _ in names["present"]]
         scroll_y = 0
@@ -54,10 +53,8 @@ class State(BaseState):
                 draw.text((3, 2), "CORVEE", fill="white", anchor="lt", font=fonts["noto20"])
                 draw.text((92, 29), "tijd!", fill="white", anchor="rb", font=fonts["noto11"])
 
-                if elapsed % 0.2 < 0.1:
-                    if blink_invert:
-                        image = ImageOps.invert(image)
-                    blink_invert = not blink_invert
+                if elapsed % 1 < 0.5:
+                    image = ImageOps.invert(image)
             elif elapsed < 7:
                 draw.text((48, 16), "Wie o wie...", fill="yellow", anchor="mm", font=fonts["noto11"])
             elif elapsed < 10:
