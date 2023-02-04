@@ -1,0 +1,26 @@
+{
+  "name": "Pac-Man",
+  "id": "pacman",
+  "kwabbel": true,
+  "description": "Pac-Man for lichtkrant",
+  "color": {
+    "from": "#E0C122",
+    "to": "#9B8618"
+  },
+  "keys": ["w", "a", "s", "d"],
+  "explanation": [
+    {
+      "type": "grid",
+      "layout": [
+        [null, "W", null],
+        ["A", null, "D"],
+        [null, "S", null]
+      ],
+      "description": "Movement keys"
+    }
+  ],
+  "colors": {
+    "visible": false,
+    "configurable": false
+  }
+}

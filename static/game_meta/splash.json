@@ -1,0 +1,24 @@
+{
+  "name": "Splash",
+  "id": "splash",
+  "description": "N&M Games' Splash for the lichtkrant",
+  "color": {
+    "from": "#1ACAE2",
+    "to": "#156671"
+  },
+  "keys": ["a", "d", "w"],
+  "explanation": [
+    {
+      "type": "grid",
+      "layout": [
+        [null, "W", null],
+        ["A", null, "D"]
+      ],
+      "description": "Movement keys"
+    }
+  ],
+  "colors": {
+    "visible": true,
+    "configurable": false
+  }
+}

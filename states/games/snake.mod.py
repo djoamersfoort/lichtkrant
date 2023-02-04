@@ -152,6 +152,7 @@ class State(BaseState):
     def __init__(self):
         super().__init__()
         self.name = "snake"
+        self.game_meta = "static/game_meta/snake.json"
         self.index = 8
         self.delay = 5
         self.player_class = Player

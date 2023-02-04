@@ -8,6 +8,7 @@ from glob import glob
 from os import path
 from time import sleep
 from typing import Optional, Any, List
+from json import loads
 
 import mqtt
 from states.base import BaseState
@@ -21,6 +22,7 @@ class LichtKrant:
         mqtt.connect(not cmd_args.offline)
         self.modules = None
         self.states = {}
+        self.games = self.get_games()
         self.socket = Socket(self)
         self.socket.start()
 
@@ -38,6 +40,17 @@ class LichtKrant:
         if not state.player_class:
             return None
         return state
+
+    def get_games(self):
+        self.read_states()
+
+        games = []
+        for _i, state in self.states.items():
+            if state.game_meta:
+                with open(state.game_meta, encoding="utf-8") as meta:
+                    games.append(loads(meta.read()))
+
+        return games
 
     def read_modules(self, location: str) -> List[Any]:
         # loading state modules

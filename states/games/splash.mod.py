@@ -197,6 +197,7 @@ class State(BaseState):
     def __init__(self):
         super().__init__()
         self.player_class = Connection
+        self.game_meta = "static/game_meta/splash.json"
 
     def add_player(self, player):
         if not self.game:
