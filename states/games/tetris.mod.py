@@ -365,6 +365,7 @@ class State(BaseState):
     def __init__(self):
         super().__init__()
         self.player_class = Player
+        self.game_meta = "static/game_meta/tetris.json"
 
     def check(self, _state):
         return self.game

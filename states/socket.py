@@ -28,6 +28,10 @@ class Socket(Thread):
         del self.players[sid]
 
     def register_events(self):
+        @self.sio.event()
+        def connect(sid: str, _environ, _auth):
+            self.sio.emit("games", self.main.games, room=sid)
+
         @self.sio.event
         def join(sid: str, game: str):
             if sid in self.players:

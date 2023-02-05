@@ -1,0 +1,25 @@
+{
+  "name": "Snake",
+  "id": "snake",
+  "description": "Online snake game for lichtkrant",
+  "color": {
+    "from": "#327C32",
+    "to": "#457045"
+  },
+  "keys": ["w", "a", "s", "d"],
+  "explanation": [
+    {
+      "type": "grid",
+      "layout": [
+        [null, "W", null],
+        ["A", null, "D"],
+        [null, "S", null]
+      ],
+      "description": "Movement keys"
+    }
+  ],
+  "colors": {
+    "visible": true,
+    "configurable": true
+  }
+}

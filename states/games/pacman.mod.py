@@ -181,6 +181,7 @@ class State(BaseState):
     def __init__(self):
         super().__init__()
         self.player_class = Player
+        self.game_meta = "static/game_meta/pacman.json"
 
     def add_player(self, player):
         if self.game:

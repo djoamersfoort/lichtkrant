@@ -1,0 +1,37 @@
+{
+  "name": "Tetris",
+  "id": "tetris",
+  "description": "Online multiplayer tetris game for lichtkrant",
+  "color": {
+    "from": "#1B428E",
+    "to": "#152B62"
+  },
+  "keys": ["w", "a", "s", "d", "e", " "],
+  "explanation": [
+    {
+      "type": "grid",
+      "layout": [
+        [null, "W", null],
+        ["A", null, "D"],
+        [null, "S", null]
+      ],
+      "description": "Movement keys"
+    },
+    {
+      "type": "grid",
+      "layout": [
+        ["E"]
+      ],
+      "description": "Rotate"
+    },
+    {
+      "type": "large",
+      "text": "SPACE",
+      "description": "Hard drop & ready up"
+    }
+  ],
+  "colors": {
+    "visible": false,
+    "configurable": false
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "name": "Pong",
+  "id": "pong2",
+  "description": "Online multiplayer pong game for lichtkrant",
+  "color": {
+    "from": "#2C3838",
+    "to": "#2D3447"
+  },
+  "keys": ["w", "s"],
+  "explanation": [
+    {
+      "type": "grid",
+      "layout": [
+        [null, "W", null],
+        [null, "S", null]
+      ],
+      "description": "Movement keys"
+    }
+  ],
+  "colors": {
+    "visible": true,
+    "configurable": true
+  }
+}
