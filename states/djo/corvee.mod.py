@@ -44,6 +44,7 @@ class State(BaseState):
             "noto11": ImageFont.truetype(self.font_path, size=11),
             "noto20": ImageFont.truetype(self.font_path, size=20)
         }
+        self.beep(2)
 
         while not self.killed:
             image = Image.new("RGB", (96, 32), (0, 0, 0))

@@ -27,6 +27,7 @@ class State(BaseState):
         break_end = break_end.replace(hour=11, minute=45, second=0)
 
         blink_invert = False
+        self.beep(2)
 
         while not self.killed:
             image = Image.new("RGB", (96, 32), "black")

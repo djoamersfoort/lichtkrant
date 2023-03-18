@@ -3,6 +3,8 @@ from shutil import which
 from sys import stdout
 from threading import Thread
 from typing import List
+import requests
+from time import sleep
 
 from PIL import Image
 
@@ -22,6 +24,19 @@ class BaseState(Thread):
 
     def kill(self) -> None:
         self.killed = True
+
+    def beep(self, duration_seconds: int) -> bool:
+        if not self.on_pi:
+            return False
+
+        try:
+            requests.get("http://beep.local/on")
+            sleep(duration_seconds)
+            requests.get("http://beep.local/off")
+        except Exception:
+            return False
+
+        return True
 
     @abstractmethod
     def check(self, space_state: dict) -> bool:
