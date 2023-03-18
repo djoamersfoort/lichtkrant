@@ -3,8 +3,8 @@ from shutil import which
 from sys import stdout
 from threading import Thread
 from typing import List
-import requests
 from time import sleep
+import requests
 
 from PIL import Image
 
@@ -30,9 +30,9 @@ class BaseState(Thread):
             return False
 
         try:
-            requests.get("http://beep.local/on")
+            requests.get("http://beep.local/on", timeout=5)
             sleep(duration_seconds)
-            requests.get("http://beep.local/off")
+            requests.get("http://beep.local/off", timeout=5)
         except Exception:
             return False
 
