@@ -1,15 +1,13 @@
 from abc import abstractmethod
+from os import environ
 from shutil import which
 from sys import stdout
 from threading import Thread
 from typing import List
-from time import sleep
-from os import environ
-from requests.auth import HTTPBasicAuth
+
 import requests
-
 from PIL import Image
-
+from requests.auth import HTTPBasicAuth
 
 BEEP_USER = environ.get("BEEP_USER")
 BEEP_PASSWORD = environ.get("BEEP_PASSWORD")
@@ -36,9 +34,8 @@ class BaseState(Thread):
             return False
 
         try:
-            requests.get("http://beep.local/on", auth=HTTPBasicAuth(BEEP_USER, BEEP_PASSWORD), timeout=5)
-            sleep(duration_seconds)
-            requests.get("http://beep.local/off", timeout=5)
+            requests.get(f"http://beep.local/on?length={int(duration_seconds * 1000)}",
+                         auth=HTTPBasicAuth(BEEP_USER, BEEP_PASSWORD), timeout=5)
         except Exception:
             return False
 
