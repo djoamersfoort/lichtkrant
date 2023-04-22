@@ -4,9 +4,15 @@ from sys import stdout
 from threading import Thread
 from typing import List
 from time import sleep
+from os import environ
+from requests.auth import HTTPBasicAuth
 import requests
 
 from PIL import Image
+
+
+BEEP_USER = environ.get("BEEP_USER")
+BEEP_PASSWORD = environ.get("BEEP_PASSWORD")
 
 
 class BaseState(Thread):
@@ -26,11 +32,11 @@ class BaseState(Thread):
         self.killed = True
 
     def beep(self, duration_seconds: int) -> bool:
-        if not self.on_pi:
+        if not BEEP_USER:
             return False
 
         try:
-            requests.get("http://beep.local/on", timeout=5)
+            requests.get("http://beep.local/on", auth=HTTPBasicAuth(BEEP_USER, BEEP_PASSWORD), timeout=5)
             sleep(duration_seconds)
             requests.get("http://beep.local/off", timeout=5)
         except Exception:
