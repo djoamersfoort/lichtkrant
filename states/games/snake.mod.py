@@ -92,7 +92,8 @@ class Apple:
         for player in self.game.players:
             for element in player.elements:
                 if new_location == element:
-                    return self.new_loc()
+                    self.new_loc()
+                    return
 
         self.location = new_location
 
