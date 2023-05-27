@@ -15,6 +15,7 @@ class Player(BasePlayer):
         self.active = True
         self.color = "FFFFFF"
         self.direction = (0, 1)
+        self.new_direction = (0, 1)
         self.position = (0, 0)
         self.elements = [(DIMENSIONS[0] / 2, DIMENSIONS[1] / 2), (DIMENSIONS[0] / 2, DIMENSIONS[1] - 1)]
         self.size = 2
@@ -25,6 +26,7 @@ class Player(BasePlayer):
 
     def on_leave(self):
         self.active = False
+        self.game.game.apples.pop()
 
     def reset(self):
         self.direction = (0, 1)
@@ -32,7 +34,7 @@ class Player(BasePlayer):
         self.size = 2
         self.dead = False
 
-    def checkDeath(self):
+    def check_death(self):
         if self.elements[0][0] <= 0 or self.elements[0][1] <= 0:
             return True
         if self.elements[0][0] >= DIMENSIONS[0] - 1 or self.elements[0][1] >= DIMENSIONS[1] - 1:
@@ -42,24 +44,26 @@ class Player(BasePlayer):
 
     def on_press(self, key):
         if key == "w" and not self.direction[1] == 1:
-            self.direction = (0, -1)
+            self.new_direction = (0, -1)
         elif key == "a" and not self.direction[0] == 1:
-            self.direction = (-1, 0)
+            self.new_direction = (-1, 0)
         elif key == "s" and not self.direction[1] == -1:
-            self.direction = (0, 1)
+            self.new_direction = (0, 1)
         elif key == "d" and not self.direction[0] == -1:
-            self.direction = (1, 0)
+            self.new_direction = (1, 0)
 
-    def newPos(self):
+    def new_pos(self):
         return self.elements[0][0] + self.direction[0], self.elements[0][1] + self.direction[1]
 
     def update(self):
+        self.direction = self.new_direction
+
         if self.size <= len(self.elements):
             self.elements.pop()
         if self.size >= len(self.elements):
-            self.elements.insert(0, self.newPos())
+            self.elements.insert(0, self.new_pos())
 
-        self.dead = self.checkDeath()
+        self.dead = self.check_death()
 
 
 class Body:
@@ -78,12 +82,20 @@ class Body:
 
 
 class Apple:
-    def __init__(self):
+    def __init__(self, game):
         self.location = (0, 0)
-        self.newLoc()
+        self.game = game
+        self.new_loc()
 
-    def newLoc(self):
-        self.location = (randrange(1, DIMENSIONS[0] - 2), randrange(1, DIMENSIONS[1] - 2))
+    def new_loc(self):
+        new_location = (randrange(1, DIMENSIONS[0] - 2), randrange(1, DIMENSIONS[1] - 2))
+        for player in self.game.players:
+            for element in player.elements:
+                if new_location == element:
+                    self.new_loc()
+                    return
+
+        self.location = new_location
 
 
 class Game:
@@ -95,7 +107,7 @@ class Game:
 
     def add_player(self, player):
         self.players.append(player)
-        self.apples.append(Apple())
+        self.apples.append(Apple(self))
 
     @staticmethod
     def hex_to_rgb(code):
@@ -106,8 +118,8 @@ class Game:
             if not player.active:
                 self.players.remove(player)
                 continue
-            speed = 30 - round(len(player.elements) / 2)
-            speed = max(speed, 5)
+            speed = 30 - round(len(player.elements) / 3)
+            speed = max(speed, 7)
 
             if tick % speed == 0:
                 player.update()
@@ -125,7 +137,7 @@ class Game:
             for apple in self.apples:
                 if player.elements[0] == apple.location:
                     player.size += 1
-                    apple.newLoc()
+                    apple.new_loc()
 
         for body in self.bodies:
             body.fade()
@@ -143,7 +155,7 @@ class Game:
                 draw.point(element, fill=self.hex_to_rgb(player.color))
         for apple in self.apples:
             draw.point(apple.location, fill=(255, 0, 0))
-        draw.rectangle([(0, 0), (DIMENSIONS[0] - 1, DIMENSIONS[1] - 1)], outline=(250, 128, 114))
+        draw.rectangle((0, 0, DIMENSIONS[0] - 1, DIMENSIONS[1] - 1), outline=(250, 128, 114))
 
         return image
 
