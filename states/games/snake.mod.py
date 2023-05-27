@@ -106,7 +106,7 @@ class Game:
 
     def add_player(self, player):
         self.players.append(player)
-        self.apples.append(Apple())
+        self.apples.append(Apple(self))
 
     @staticmethod
     def hex_to_rgb(code):
