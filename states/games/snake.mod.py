@@ -15,6 +15,7 @@ class Player(BasePlayer):
         self.active = True
         self.color = "FFFFFF"
         self.direction = (0, 1)
+        self.new_direction = (0, 1)
         self.position = (0, 0)
         self.elements = [(DIMENSIONS[0] / 2, DIMENSIONS[1] / 2), (DIMENSIONS[0] / 2, DIMENSIONS[1] - 1)]
         self.size = 2
@@ -43,18 +44,20 @@ class Player(BasePlayer):
 
     def on_press(self, key):
         if key == "w" and not self.direction[1] == 1:
-            self.direction = (0, -1)
+            self.new_direction = (0, -1)
         elif key == "a" and not self.direction[0] == 1:
-            self.direction = (-1, 0)
+            self.new_direction = (-1, 0)
         elif key == "s" and not self.direction[1] == -1:
-            self.direction = (0, 1)
+            self.new_direction = (0, 1)
         elif key == "d" and not self.direction[0] == -1:
-            self.direction = (1, 0)
+            self.new_direction = (1, 0)
 
     def new_pos(self):
         return self.elements[0][0] + self.direction[0], self.elements[0][1] + self.direction[1]
 
     def update(self):
+        self.direction = self.new_direction
+
         if self.size <= len(self.elements):
             self.elements.pop()
         if self.size >= len(self.elements):
