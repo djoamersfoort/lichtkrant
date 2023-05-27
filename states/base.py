@@ -9,6 +9,7 @@ import requests
 from PIL import Image
 from requests.auth import HTTPBasicAuth
 
+BEEP_URL = environ.get("BEEP_URL")
 BEEP_USER = environ.get("BEEP_USER")
 BEEP_PASSWORD = environ.get("BEEP_PASSWORD")
 
@@ -30,11 +31,11 @@ class BaseState(Thread):
         self.killed = True
 
     def beep(self, duration_seconds: int) -> bool:
-        if not BEEP_USER:
+        if not BEEP_URL:
             return False
 
         try:
-            requests.get(f"http://beep.local/on?length={int(duration_seconds * 1000)}",
+            requests.get(f"http://{BEEP_URL}/on?length={int(duration_seconds * 1000)}",
                          auth=HTTPBasicAuth(BEEP_USER, BEEP_PASSWORD), timeout=5)
         except Exception:
             return False
