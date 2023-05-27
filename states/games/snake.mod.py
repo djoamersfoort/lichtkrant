@@ -43,7 +43,7 @@ class Player(BasePlayer):
     def on_press(self, key):
         if key == "w" and not self.direction[1] == 1:
             self.direction = (0, -1)
-        elif key == "a" and not self.direction[0] = 1:
+        elif key == "a" and not self.direction[0] == 1:
             self.direction = (-1, 0)
         elif key == "s" and not self.direction[1] == -1:
             self.direction = (0, 1)
