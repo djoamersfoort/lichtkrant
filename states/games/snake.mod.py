@@ -41,13 +41,13 @@ class Player(BasePlayer):
         return False
 
     def on_press(self, key):
-        if key == "w":
+        if key == "w" and not self.direction[1] == 1:
             self.direction = (0, -1)
-        elif key == "a":
+        elif key == "a" and not self.direction[0] == 1:
             self.direction = (-1, 0)
-        elif key == "s":
+        elif key == "s" and not self.direction[1] == -1:
             self.direction = (0, 1)
-        elif key == "d":
+        elif key == "d" and not self.direction[0] == -1:
             self.direction = (1, 0)
 
     def newPos(self):
