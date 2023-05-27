@@ -26,7 +26,7 @@ class Player(BasePlayer):
 
     def on_leave(self):
         self.active = False
-        self.game.apples.pop()
+        self.game.game.apples.pop()
 
     def reset(self):
         self.direction = (0, 1)
