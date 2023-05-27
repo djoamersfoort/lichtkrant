@@ -79,12 +79,19 @@ class Body:
 
 
 class Apple:
-    def __init__(self):
+    def __init__(self, game):
         self.location = (0, 0)
+        self.game = game
         self.new_loc()
 
     def new_loc(self):
-        self.location = (randrange(1, DIMENSIONS[0] - 2), randrange(1, DIMENSIONS[1] - 2))
+        new_location = (randrange(1, DIMENSIONS[0] - 2), randrange(1, DIMENSIONS[1] - 2))
+        for player in self.game.players:
+            for element in player.elements:
+                if new_location == element:
+                    return self.new_loc()
+
+        self.location = new_location
 
 
 class Game:
