@@ -25,6 +25,7 @@ class Player(BasePlayer):
 
     def on_leave(self):
         self.active = False
+        self.game.apples.pop()
 
     def reset(self):
         self.direction = (0, 1)
@@ -32,7 +33,7 @@ class Player(BasePlayer):
         self.size = 2
         self.dead = False
 
-    def checkDeath(self):
+    def check_death(self):
         if self.elements[0][0] <= 0 or self.elements[0][1] <= 0:
             return True
         if self.elements[0][0] >= DIMENSIONS[0] - 1 or self.elements[0][1] >= DIMENSIONS[1] - 1:
@@ -50,16 +51,16 @@ class Player(BasePlayer):
         elif key == "d" and not self.direction[0] == -1:
             self.direction = (1, 0)
 
-    def newPos(self):
+    def new_pos(self):
         return self.elements[0][0] + self.direction[0], self.elements[0][1] + self.direction[1]
 
     def update(self):
         if self.size <= len(self.elements):
             self.elements.pop()
         if self.size >= len(self.elements):
-            self.elements.insert(0, self.newPos())
+            self.elements.insert(0, self.new_pos())
 
-        self.dead = self.checkDeath()
+        self.dead = self.check_death()
 
 
 class Body:
@@ -80,9 +81,9 @@ class Body:
 class Apple:
     def __init__(self):
         self.location = (0, 0)
-        self.newLoc()
+        self.new_loc()
 
-    def newLoc(self):
+    def new_loc(self):
         self.location = (randrange(1, DIMENSIONS[0] - 2), randrange(1, DIMENSIONS[1] - 2))
 
 
@@ -125,7 +126,7 @@ class Game:
             for apple in self.apples:
                 if player.elements[0] == apple.location:
                     player.size += 1
-                    apple.newLoc()
+                    apple.new_loc()
 
         for body in self.bodies:
             body.fade()
@@ -143,7 +144,7 @@ class Game:
                 draw.point(element, fill=self.hex_to_rgb(player.color))
         for apple in self.apples:
             draw.point(apple.location, fill=(255, 0, 0))
-        draw.rectangle([(0, 0), (DIMENSIONS[0] - 1, DIMENSIONS[1] - 1)], outline=(250, 128, 114))
+        draw.rectangle((0, 0, DIMENSIONS[0] - 1, DIMENSIONS[1] - 1), outline=(250, 128, 114))
 
         return image
 
