@@ -34,14 +34,6 @@ class Player(BasePlayer):
         self.size = 2
         self.dead = False
 
-    def check_death(self):
-        if self.elements[0][0] <= 0 or self.elements[0][1] <= 0:
-            return True
-        if self.elements[0][0] >= DIMENSIONS[0] - 1 or self.elements[0][1] >= DIMENSIONS[1] - 1:
-            return True
-
-        return False
-
     def on_press(self, key):
         if key == "w" and not self.direction[1] == 1:
             self.new_direction = (0, -1)
@@ -53,7 +45,17 @@ class Player(BasePlayer):
             self.new_direction = (1, 0)
 
     def new_pos(self):
-        return self.elements[0][0] + self.direction[0], self.elements[0][1] + self.direction[1]
+        new_pos = [self.elements[0][0] + self.direction[0], self.elements[0][1] + self.direction[1]]
+        if new_pos[0] < 0:
+            new_pos[0] = DIMENSIONS[0]
+        elif new_pos[0] > DIMENSIONS[0]:
+            new_pos[0] = 0
+        if new_pos[1] < 0:
+            new_pos[1] = DIMENSIONS[1]
+        elif new_pos[1] > DIMENSIONS[1]:
+            new_pos[1] = 0
+
+        return new_pos[0], new_pos[1]
 
     def update(self):
         self.direction = self.new_direction
@@ -62,8 +64,6 @@ class Player(BasePlayer):
             self.elements.pop()
         if self.size >= len(self.elements):
             self.elements.insert(0, self.new_pos())
-
-        self.dead = self.check_death()
 
 
 class Body:
@@ -155,7 +155,6 @@ class Game:
                 draw.point(element, fill=self.hex_to_rgb(player.color))
         for apple in self.apples:
             draw.point(apple.location, fill=(255, 0, 0))
-        draw.rectangle((0, 0, DIMENSIONS[0] - 1, DIMENSIONS[1] - 1), outline=(250, 128, 114))
 
         return image
 
