@@ -18,7 +18,7 @@ class State(BaseState):
     # module runner
     def run(self):
         # shutdown after 1 minute
-        os.system("shutdown 1")
+        os.system("/sbin/halt")
 
         # shutdown text
         hal_path = "static/hal.png"
