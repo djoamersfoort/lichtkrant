@@ -14,11 +14,15 @@ class Socket(Thread):
         self.main = main
         self.players: Dict[str, BasePlayer] = {}
         self.sio = socketio.Server(cors_allowed_origins='*')
-        self.app = socketio.WSGIApp(self.sio)
+        self.app = socketio.WSGIApp(self.sio, static_files={
+            '/': './static/lichtkrant-client/index.html',
+            '': './static/lichtkrant-client'
+        })
+
         self.register_events()
 
     def run(self):
-        eventlet.wsgi.server(eventlet.listen(('', 5000)), self.app, log_output=False)
+        eventlet.wsgi.server(eventlet.listen(('', 80)), self.app, log_output=False)
 
     def remove_player(self, sid: str):
         if sid not in self.players:

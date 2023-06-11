@@ -1,0 +1,4 @@
+[submodule "static/lichtkrant-client"]
+	path = static/lichtkrant-client
+	url = https://github.com/djoamersfoort/lichtkrant-client
+	branch = build
