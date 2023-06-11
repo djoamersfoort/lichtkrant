@@ -22,7 +22,7 @@ class Socket(Thread):
         self.register_events()
 
     def run(self):
-        eventlet.wsgi.server(eventlet.listen(('', 5000)), self.app, log_output=False)
+        eventlet.wsgi.server(eventlet.listen(('', 80)), self.app, log_output=False)
 
     def remove_player(self, sid: str):
         if sid not in self.players:
