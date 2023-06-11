@@ -14,7 +14,11 @@ class Socket(Thread):
         self.main = main
         self.players: Dict[str, BasePlayer] = {}
         self.sio = socketio.Server(cors_allowed_origins='*')
-        self.app = socketio.WSGIApp(self.sio)
+        self.app = socketio.WSGIApp(self.sio, static_files={
+            '/': './static/lichtkrant-client/index.html',
+            '': './static/lichtkrant-client'
+        })
+
         self.register_events()
 
     def run(self):
