@@ -407,6 +407,8 @@ class State(BaseState):
             player.board = board
             return ClientState.READYING
 
+        return ClientState.MENU
+
     def leave(self, player):
         index, board = next(((i, board) for (i, board) in enumerate(
             self.game.boards) if board.player is player), None)
