@@ -12,5 +12,6 @@ disable = ["missing-module-docstring",
     "broad-except",
     "too-many-instance-attributes",
     "too-few-public-methods",
-    "duplicate-code"
+    "duplicate-code",
+    "wrong-import-order"
 ]
