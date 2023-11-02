@@ -23,7 +23,7 @@ class LichtKrant:
         self.modules = None
         self.states = {}
         self.games = self.get_games()
-        self.socket = Socket(self)
+        self.socket = Socket(self, int(cmd_args.port))
         self.socket.start()
 
     def import_module(self, loc: str) -> (Optional[Any], str):
@@ -163,6 +163,7 @@ if __name__ == '__main__':
     parser.add_argument('-r', '--recursive', type=bool, default=True, help='whether to search recursively')
     parser.add_argument('-d', '--dry', action='store_true', default=False, help='do not spew out pixel data')
     parser.add_argument('-o', '--offline', action='store_true', default=False, help='disable MQTT connectivity')
+    parser.add_argument('-p', '--port', default=80, help='set a port for the client')
 
     args = parser.parse_args()
 

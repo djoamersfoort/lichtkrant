@@ -9,7 +9,7 @@ from states.base import BaseState
 
 
 class Socket(Thread):
-    def __init__(self, main):
+    def __init__(self, main, port: int):
         super().__init__()
         self.main = main
         self.players: Dict[str, BasePlayer] = {}
@@ -18,11 +18,12 @@ class Socket(Thread):
             '/': './static/lichtkrant-client/index.html',
             '': './static/lichtkrant-client'
         })
+        self.port = port
 
         self.register_events()
 
     def run(self):
-        eventlet.wsgi.server(eventlet.listen(('', 80)), self.app, log_output=False)
+        eventlet.wsgi.server(eventlet.listen(('', self.port)), self.app, log_output=False)
 
     def remove_player(self, sid: str):
         if sid not in self.players:
