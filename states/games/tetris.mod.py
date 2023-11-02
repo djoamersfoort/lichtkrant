@@ -406,8 +406,6 @@ class State(BaseState):
             board.player = player
             player.board = board
             return ClientState.READYING
-        else:
-            return
 
     def leave(self, player):
         index, board = next(((i, board) for (i, board) in enumerate(
