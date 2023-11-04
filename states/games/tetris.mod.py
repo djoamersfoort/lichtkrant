@@ -4,7 +4,7 @@ from time import sleep, time
 from typing import cast
 
 from states.base import BaseState
-from states.socket import BasePlayer
+from states.socket import BasePlayer, ClientState
 
 
 GREY = [150, 150, 150]
@@ -93,6 +93,7 @@ class Game:
             if connected_boards and connected_boards == ready_boards:
                 self.state = "game"
                 for board in ready_boards:
+                    board.player.set_state(ClientState.PLAYING)
                     board.in_game = True
 
     def draw(self, pixels):
@@ -132,6 +133,9 @@ class Player(BasePlayer):
 
     def on_press(self, key):
         self.board.press(key)
+
+    def on_ready_change(self, state: bool):
+        self.board.ready_for_game = state
 
     def on_leave(self):
         cast(State, self.game).leave(self)
@@ -401,8 +405,9 @@ class State(BaseState):
         if board:
             board.player = player
             player.board = board
-        else:
-            return
+            return ClientState.READYING
+
+        return ClientState.MENU
 
     def leave(self, player):
         index, board = next(((i, board) for (i, board) in enumerate(

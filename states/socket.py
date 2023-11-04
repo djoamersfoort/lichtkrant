@@ -1,6 +1,7 @@
 from abc import abstractmethod
 from threading import Thread
 from typing import Dict
+from enum import Enum
 
 import eventlet
 import socketio
@@ -8,8 +9,17 @@ import socketio
 from states.base import BaseState
 
 
+class ClientState(Enum):
+    def __str__(self):
+        return str(self.value)
+
+    MENU = 'menu'
+    READYING = 'readying'
+    PLAYING = 'playing'
+
+
 class Socket(Thread):
-    def __init__(self, main):
+    def __init__(self, main, port: int):
         super().__init__()
         self.main = main
         self.players: Dict[str, BasePlayer] = {}
@@ -18,11 +28,12 @@ class Socket(Thread):
             '/': './static/lichtkrant-client/index.html',
             '': './static/lichtkrant-client'
         })
+        self.port = port
 
         self.register_events()
 
     def run(self):
-        eventlet.wsgi.server(eventlet.listen(('', 80)), self.app, log_output=False)
+        eventlet.wsgi.server(eventlet.listen(('', self.port)), self.app, log_output=False)
 
     def remove_player(self, sid: str):
         if sid not in self.players:
@@ -46,7 +57,12 @@ class Socket(Thread):
 
             player: BasePlayer = game.player_class(self.sio, sid, game)
             self.players[sid] = player
-            game.add_player(player)
+
+            response = game.add_player(player)
+            if not response:
+                player.set_state(ClientState.PLAYING)
+            else:
+                player.set_state(response)
 
         @self.sio.event
         def leave(sid: str):
@@ -55,6 +71,10 @@ class Socket(Thread):
         @self.sio.event
         def disconnect(sid: str):
             self.remove_player(sid)
+
+        @self.sio.event
+        def ready_state(sid: str, state: bool):
+            self.players[sid].on_ready_change(state)
 
         @self.sio.event
         def color(sid: str, new: str):
@@ -91,8 +111,14 @@ class BasePlayer:
     def on_color(self, _code: str):
         return
 
+    def on_ready_change(self, _state: bool):
+        return
+
     def on_leave(self):
         return
 
     def set_color(self, code: str):
         self.sio.emit("color", code, room=self.sid)
+
+    def set_state(self, state: ClientState):
+        self.sio.emit("state", str(state), self.sid)
