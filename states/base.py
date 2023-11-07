@@ -1,8 +1,9 @@
 from abc import abstractmethod
 from os import environ
 from shutil import which
-from sys import stdout
 from typing import List
+import aiofiles
+import sys
 
 import httpx
 from PIL import Image
@@ -25,6 +26,7 @@ class BaseState:
         self.game_meta = None
         self.font_path = "./static/fonts/NotoMono-Regular.ttf"
         self.client = httpx.AsyncClient()
+        self.stdout = None
 
     def kill(self) -> None:
         self.killed = True
@@ -49,10 +51,10 @@ class BaseState:
         pass
 
     async def output_image(self, pil_image: Image) -> None:
-        stdout.buffer.write(pil_image.tobytes())
+        await self.stdout.write(pil_image.tobytes())
 
     async def output_frame(self, frame: bytes) -> None:
-        stdout.buffer.write(frame)
+        await self.stdout.write(frame)
 
     @staticmethod
     def text(text: str) -> List[List[int]]:
