@@ -2,8 +2,6 @@ from abc import abstractmethod
 from os import environ
 from shutil import which
 from typing import List
-import aiofiles
-import sys
 
 import httpx
 from PIL import Image
