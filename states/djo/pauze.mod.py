@@ -1,9 +1,10 @@
 from datetime import timedelta, datetime
-from time import sleep
 
 from PIL import Image, ImageDraw, ImageFont, ImageOps
 
 from states.base import BaseState
+
+import asyncio
 
 
 class State(BaseState):
@@ -14,12 +15,12 @@ class State(BaseState):
     delay = 15
 
     # module check function
-    def check(self, space_state):
+    async def check(self, space_state):
         now = datetime.now()
         return now.weekday() == 5 and now.hour == 11 and 30 <= now.minute < 45
 
     # module runner
-    def run(self):
+    async def run(self):
         # shutdown text
         text = "|PAUZE|"
 
@@ -27,7 +28,7 @@ class State(BaseState):
         break_end = break_end.replace(hour=11, minute=45, second=0)
 
         blink_invert = False
-        self.beep(2)
+        await self.beep(2)
 
         while not self.killed:
             image = Image.new("RGB", (96, 32), "black")
@@ -53,5 +54,5 @@ class State(BaseState):
 
                 blink_invert = not blink_invert
 
-            self.output_image(image)
-            sleep(0.5)
+            await self.output_image(image)
+            await asyncio.sleep(0.5)

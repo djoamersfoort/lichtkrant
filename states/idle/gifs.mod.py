@@ -1,6 +1,6 @@
 import glob
 import random
-from time import sleep
+from asyncio import sleep
 
 from PIL import Image
 
@@ -15,7 +15,7 @@ class State(BaseState):
     delay = 12
 
     # check function
-    def check(self, _state):
+    async def check(self, _state):
         return True
 
     def get_image(self, path):
@@ -35,12 +35,15 @@ class State(BaseState):
         return sequence
 
     # module runner
-    def run(self):
+    async def run(self):
         gifs = glob.glob('static/gifs/*.gif')
         gif = gifs[random.randint(0, len(gifs) - 1)]
         sequence = self.get_image(gif)
 
         while not self.killed:
             for image in sequence:
-                self.output_image(image)
-                sleep(image.info['duration'] / 1000)
+                if self.killed:
+                    break
+
+                await self.output_image(image)
+                await sleep(image.info['duration'] / 1000)

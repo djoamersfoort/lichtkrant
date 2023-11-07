@@ -2,6 +2,7 @@ argparse==1.4.0
 paho-mqtt==1.5.1
 pillow==10.0.1
 requests
+httpx
 python-socketio
 eventlet
 websocket-client

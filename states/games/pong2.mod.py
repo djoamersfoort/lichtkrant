@@ -1,10 +1,12 @@
 import math
 from random import choice
-from time import sleep, time
+from time import time
 from typing import cast
 
 from states.base import BaseState
 from states.socket import BasePlayer
+
+from asyncio import sleep
 
 WHITE = [255, 255, 255]
 BLUE = [0, 0, 255]
@@ -68,12 +70,12 @@ class Game:
             self.ball.last_player.score += 1
         self.ball.reset()
 
-    def update(self):
+    async def update(self):
         if not self.paddles[0].ishuman or not self.paddles[1].ishuman:
             return
         for player in self.paddles:
             if player.has_won:
-                sleep(5)
+                await sleep(5)
                 self.reset()
                 return
             player.move()
@@ -196,16 +198,14 @@ class State(BaseState):
         self.player_class = Player
         self.game_meta = "static/game_meta/pong2.json"
 
-    def check(self, _state):
+    async def check(self, _state):
         return self.game
 
-    def run(self):
-        while not self.killed:
-            if not self.game:
-                continue
+    async def run(self):
+        while not self.killed and self.game:
             if not self.on_pi:
                 time_start = time()
-            self.game.update()
+            await self.game.update()
             # create a black empty set of pixels
             pixels = []
             for _ in range(self.winh):
@@ -250,13 +250,13 @@ class State(BaseState):
                             pos_y = sc["center"][1] + y
                             pixels[pos_y][pos_x] = sc["color"]
             # flatten, convert and write buffer to display
-            self.output_frame(bytes(self.flatten(pixels)))
+            await self.output_frame(bytes(self.flatten(pixels)))
             if not self.on_pi:
                 time_end = time()
                 time_delta = time_start - time_end
-                sleep(max(0.04 - time_delta, 0))
+                await sleep(max(0.04 - time_delta, 0))
 
-    def add_player(self, player):
+    async def add_player(self, player):
         if not self.game:
             self.game = Game({"width": self.winw, "height": self.winh})
         paddle = next(

@@ -1,10 +1,10 @@
 from abc import abstractmethod
-from threading import Thread
 from typing import Dict
 from enum import Enum
 
-import eventlet
 import socketio
+from hypercorn.asyncio import serve
+from hypercorn.config import Config
 
 from states.base import BaseState
 
@@ -18,13 +18,13 @@ class ClientState(Enum):
     PLAYING = 'playing'
 
 
-class Socket(Thread):
+class Socket:
     def __init__(self, main, port: int):
         super().__init__()
         self.main = main
         self.players: Dict[str, BasePlayer] = {}
-        self.sio = socketio.Server(cors_allowed_origins='*')
-        self.app = socketio.WSGIApp(self.sio, static_files={
+        self.sio = socketio.AsyncServer(cors_allowed_origins='*', async_mode='asgi')
+        self.app = socketio.ASGIApp(self.sio, static_files={
             '/': './static/lichtkrant-client/index.html',
             '': './static/lichtkrant-client'
         })
@@ -32,8 +32,11 @@ class Socket(Thread):
 
         self.register_events()
 
-    def run(self):
-        eventlet.wsgi.server(eventlet.listen(('', self.port)), self.app, log_output=False)
+    async def start(self):
+        config = Config()
+        config.bind = f"0.0.0.0:{self.port}"
+
+        return await serve(self.app, config)
 
     def remove_player(self, sid: str):
         if sid not in self.players:
@@ -44,11 +47,11 @@ class Socket(Thread):
 
     def register_events(self):
         @self.sio.event()
-        def connect(sid: str, _environ, _auth):
-            self.sio.emit("games", self.main.games, room=sid)
+        async def connect(sid: str, _environ, _auth):
+            await self.sio.emit("games", self.main.games, room=sid)
 
         @self.sio.event
-        def join(sid: str, game: str):
+        async def join(sid: str, game: str):
             if sid in self.players:
                 return
             game: BaseState = self.main.get_game(game)
@@ -58,38 +61,38 @@ class Socket(Thread):
             player: BasePlayer = game.player_class(self.sio, sid, game)
             self.players[sid] = player
 
-            response = game.add_player(player)
+            response = await game.add_player(player)
             if not response:
-                player.set_state(ClientState.PLAYING)
+                await player.set_state(ClientState.PLAYING)
             else:
-                player.set_state(response)
+                await player.set_state(response)
 
         @self.sio.event
-        def leave(sid: str):
+        async def leave(sid: str):
             self.remove_player(sid)
 
         @self.sio.event
-        def disconnect(sid: str):
+        async def disconnect(sid: str):
             self.remove_player(sid)
 
         @self.sio.event
-        def ready_state(sid: str, state: bool):
+        async def ready_state(sid: str, state: bool):
             self.players[sid].on_ready_change(state)
 
         @self.sio.event
-        def color(sid: str, new: str):
+        async def color(sid: str, new: str):
             if sid not in self.players:
                 return
             self.players[sid].on_color(new)
 
         @self.sio.event
-        def key_down(sid: str, key: str):
+        async def key_down(sid: str, key: str):
             if sid not in self.players:
                 return
             self.players[sid].on_press(key)
 
         @self.sio.event
-        def key_up(sid: str, key: str):
+        async def key_up(sid: str, key: str):
             if sid not in self.players:
                 return
             self.players[sid].on_release(key)
@@ -117,8 +120,8 @@ class BasePlayer:
     def on_leave(self):
         return
 
-    def set_color(self, code: str):
-        self.sio.emit("color", code, room=self.sid)
+    async def set_color(self, code: str):
+        await self.sio.emit("color", code, room=self.sid)
 
-    def set_state(self, state: ClientState):
-        self.sio.emit("state", str(state), self.sid)
+    async def set_state(self, state: ClientState):
+        await self.sio.emit("state", str(state), self.sid)

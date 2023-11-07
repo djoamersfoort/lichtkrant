@@ -1,11 +1,12 @@
 from math import floor
 from random import randint
-from time import sleep
 
-import requests
+import httpx
 from PIL import Image, ImageDraw, ImageFont, ImageOps
 
 from states.base import BaseState
+
+import asyncio
 
 
 class State(BaseState):
@@ -15,24 +16,21 @@ class State(BaseState):
     delay = 3600
 
     # get corvee dashboard data
-    @staticmethod
-    def get_names():
+    async def get_names(self):
         try:
-            response = requests.get("https://corvee.djoamersfoort.nl/api/v1/selected", timeout=5)
-        except requests.exceptions.RequestException:
-            return {}
-        if not response.ok:
+            response = await self.client.get("https://corvee.djoamersfoort.nl/api/v1/selected", timeout=5)
+        except httpx.RequestError:
             return {}
         return response.json()
 
     # module check function
-    def check(self, _state):
-        names = self.get_names()
+    async def check(self, _state):
+        names = await self.get_names()
         return "selected" in names and len(names["selected"]) > 0
 
     # runner function
     # pylint: disable=too-many-branches
-    def run(self):
+    async def run(self):
         elapsed = 0
         names = self.get_names()
         colors = [(randint(128, 255), randint(128, 255), randint(128, 255)) for _ in names["present"]]
@@ -44,7 +42,7 @@ class State(BaseState):
             "noto11": ImageFont.truetype(self.font_path, size=11),
             "noto20": ImageFont.truetype(self.font_path, size=20)
         }
-        self.beep(2)
+        await self.beep(2)
 
         while not self.killed:
             image = Image.new("RGB", (96, 32), (0, 0, 0))
@@ -84,7 +82,7 @@ class State(BaseState):
                     centered = names["present"][center_index]
                     if centered in names["selected"]:
                         image = ImageOps.solarize(image, threshold=20)
-                        sleep(5)
+                        await asyncio.sleep(5)
                         image = ImageOps.solarize(image, threshold=-20)
                         names["selected"].remove(centered)
                         chosen.append(centered)
@@ -99,6 +97,6 @@ class State(BaseState):
                     draw.rectangle([(1, y - 8), (6, y - 4)], fill="blue")
                     draw.rectangle([(89, y - 8), (94, y - 4)], fill="blue")
 
-            self.output_image(image)
-            sleep(.05)
+            await self.output_image(image)
+            await asyncio.sleep(.05)
             elapsed += .05

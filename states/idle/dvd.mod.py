@@ -1,5 +1,5 @@
 from random import randint
-from time import sleep
+from asyncio import sleep
 
 from states.base import BaseState
 
@@ -11,7 +11,7 @@ class State(BaseState):
     delay = 30
 
     # check function
-    def check(self, space_state):
+    async def check(self, space_state):
         return True
 
     # DJO logo
@@ -34,7 +34,7 @@ class State(BaseState):
     frame_delay = 1 / 45
 
     # module runner
-    def run(self):
+    async def run(self):
         # variables
         posx = randint(0, self.winw - self.width - 2)
         posy = randint(0, self.winh - self.height - 2)
@@ -78,13 +78,13 @@ class State(BaseState):
             if horizontal_hit and vertical_hit:
                 for _i in range(0, 7):
                     while brightness < 1:
-                        self.output_frame(bytes([int(i * brightness) for i in color]) * 3072)
+                        await self.output_frame(bytes([int(i * brightness) for i in color]) * 3072)
                         brightness = round(brightness + 0.2, 1)
-                        sleep(0.05)
+                        await sleep(0.05)
                     while brightness > 0:
-                        self.output_frame(bytes([int(i * brightness) for i in color]) * 3072)
+                        await self.output_frame(bytes([int(i * brightness) for i in color]) * 3072)
                         brightness = round(brightness - 0.2, 1)
-                        sleep(0.05)
+                        await sleep(0.05)
 
             if horizontal_hit:
                 addx *= -1
@@ -99,5 +99,5 @@ class State(BaseState):
                     frame += get_pixel(x, y)
 
             for _i in range(2):
-                self.output_frame(frame)
-                sleep(self.frame_delay)
+                await self.output_frame(frame)
+                await sleep(self.frame_delay)

@@ -1,11 +1,12 @@
 import json
 from random import choice
-from time import sleep
 
 from PIL import Image, ImageDraw
 
 from states.base import BaseState
 from states.socket import BasePlayer
+
+from asyncio import sleep
 
 
 class Game:
@@ -183,25 +184,24 @@ class State(BaseState):
         self.player_class = Player
         self.game_meta = "static/game_meta/pacman.json"
 
-    def add_player(self, player):
+    async def add_player(self, player):
         if self.game:
             return
         player.playing = True
         self.game = Game()
 
-    def check(self, _state):
+    async def check(self, _state):
         return self.game
 
-    def run(self):
-        while not self.killed:
-            if self.game:
-                self.game.update(self.direction)
-                self.output_image(self.game.image)
+    async def run(self):
+        while not self.killed and self.game:
+            self.game.update(self.direction)
+            await self.output_image(self.game.image)
 
-                if self.game.lost:
-                    self.game = Game()
+            if self.game.lost:
+                self.game = Game()
 
-            sleep(0.05)
+            await sleep(0.05)
 
 
 class Enemy:

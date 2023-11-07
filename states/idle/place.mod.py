@@ -1,4 +1,4 @@
-from time import sleep
+from asyncio import sleep
 
 import socketio
 from PIL import Image, ImageDraw, ImageFont
@@ -25,17 +25,17 @@ class State(BaseState):
         self.sio.connect("https://place.djoamersfoort.nl")
 
     # module check function
-    def check(self, _state):
+    async def check(self, _state):
         return self.tiles is not None and self.palette is not None
 
-    def run(self):
+    async def run(self):
         self.info()
         while not self.killed:
             if self.time == 10:
                 self.draw()
-            self.output_image(self.image)
+            await self.output_image(self.image)
             self.time += 1
-            sleep(0.5)
+            await sleep(0.5)
         self.time = 0
         self.sio.disconnect()
 

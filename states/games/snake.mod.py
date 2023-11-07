@@ -1,5 +1,5 @@
+from asyncio import sleep
 from random import randrange
-from time import sleep
 
 from PIL import Image, ImageDraw
 
@@ -169,17 +169,17 @@ class State(BaseState):
         self.player_class = Player
         self.game = Game(self)
 
-    def add_player(self, player):
+    async def add_player(self, player):
         self.game.add_player(player)
 
-    def check(self, _state):
+    async def check(self, _state):
         return len(self.game.players) > 0
 
-    def run(self):
+    async def run(self):
         tick = 0
         while not self.killed:
             tick += 1
             self.game.update(tick)
-            self.output_image(self.game.export())
+            await self.output_image(self.game.export())
 
-            sleep(0.01)
+            await sleep(0.01)

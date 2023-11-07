@@ -1,5 +1,5 @@
 import random
-from time import sleep
+from asyncio import sleep
 
 from states.base import BaseState
 
@@ -23,12 +23,12 @@ class State(BaseState):
         self.state = None
 
     # check function
-    def check(self, space_state):
+    async def check(self, space_state):
         self.state = space_state
         return True
 
     # module runner
-    def run(self):
+    async def run(self):
         p1_y = 16
         p2_y = 16
 
@@ -96,5 +96,5 @@ class State(BaseState):
             for y in range(0, self.winh):
                 for x in range(0, self.winw):
                     frame += get_pixel(x, y)
-            self.output_frame(frame)
-            sleep(self.frame_delay)
+            await self.output_frame(frame)
+            await sleep(self.frame_delay)

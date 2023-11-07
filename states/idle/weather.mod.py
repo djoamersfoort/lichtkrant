@@ -1,9 +1,8 @@
 import json
 import math
 from datetime import datetime, timedelta
-from time import sleep
+from asyncio import sleep
 
-import requests
 from PIL import Image, ImageDraw, ImageFont
 
 from states.base import BaseState
@@ -20,11 +19,11 @@ class State(BaseState):
           "lat=52.09&lon=5.12&btc=202105271011&ak=3c4a3037-85e6-4d1e-ad6c-f3f6e4b75f2f"
 
     # check function
-    def check(self, _state):
+    async def check(self, _state):
         return True
 
-    def get_data(self):
-        req = requests.get(self.url, timeout=5)
+    async def get_data(self):
+        req = await self.client.get(self.url, timeout=5)
         data = json.loads(req.text)
         return data['forecasts']
 
@@ -74,10 +73,10 @@ class State(BaseState):
         return image
 
     # module runner
-    def run(self):
-        data = self.get_data()
+    async def run(self):
+        data = await self.get_data()
         image = self.get_image(data)
 
         while not self.killed:
-            self.output_image(image)
-            sleep(1)
+            await self.output_image(image)
+            await sleep(1)

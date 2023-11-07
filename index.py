@@ -1,17 +1,14 @@
 #!/usr/bin/env python
-
-import eventlet
-eventlet.monkey_patch()
-
 import argparse
+import asyncio
 import importlib.util
 import random
+import signal
 import time
 from glob import glob
-from os import path
-from time import sleep
-from typing import Optional, Any, List
 from json import loads
+from os import path
+from typing import Optional, Any, List
 
 import mqtt
 from states.base import BaseState
@@ -27,7 +24,6 @@ class LichtKrant:
         self.states = {}
         self.games = self.get_games()
         self.socket = Socket(self, int(cmd_args.port))
-        self.socket.start()
 
     def import_module(self, loc: str) -> (Optional[Any], str):
         name = path.basename(loc).replace('.mod.py', '', -1)
@@ -75,11 +71,10 @@ class LichtKrant:
 
     def kill_state(self, state: BaseState) -> None:
         state.kill()
-        state.join()
         # Remove the state, because Thread's can only be start()ed once
         del self.states[state.name]
 
-    def get_state(self, space_state: dict) -> Optional[BaseState]:
+    async def get_state(self, space_state: dict) -> Optional[BaseState]:
         self.read_states()
 
         # getting highest indexed state
@@ -93,7 +88,7 @@ class LichtKrant:
         filtered_states = []
         for name, state in self.states.items():
             try:
-                if state.check(space_state):
+                if await state.check(space_state):
                     filtered_states.append(state)
             except Exception as e:
                 # The state's check() method crashed -> ignore it
@@ -114,17 +109,17 @@ class LichtKrant:
             print(f"state: {state.name}")
             return None
 
-        state.start()
+        asyncio.run_coroutine_threadsafe(state.run(), asyncio.get_event_loop())
         return state
 
-    def state_loop(self) -> None:
+    async def state_loop(self) -> None:
         # the state update loop
         current_state = None
         current_thread = None
 
         while True:
             space_state = mqtt.get_states()
-            new_state = self.get_state(space_state)
+            new_state = await self.get_state(space_state)
 
             if new_state != current_state:
                 current_state = new_state
@@ -143,18 +138,25 @@ class LichtKrant:
                     break
 
                 # Check if current state wants to disable itself
-                if not new_state.check(space_state):
+                if not await new_state.check(space_state):
                     break
 
-                diff_state = self.get_state(space_state)
+                diff_state = await self.get_state(space_state)
 
                 if diff_state.index > new_state.index:
                     break
 
-                sleep(4)
+                await asyncio.sleep(4)
 
-    def start(self) -> None:
-        self.state_loop()
+
+    def stop(self):
+        return
+
+
+    async def start(self) -> None:
+        async with asyncio.TaskGroup() as tg:
+            tg.create_task(self.state_loop())
+            tg.create_task(self.socket.start())
 
 
 if __name__ == '__main__':
@@ -171,4 +173,8 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     lichtkrant = LichtKrant(args)
-    lichtkrant.start()
+
+    loop = asyncio.new_event_loop()
+    loop.add_signal_handler(signal.SIGTERM, lichtkrant.stop)
+    loop.add_signal_handler(signal.SIGINT, lichtkrant.stop)
+    loop.run_until_complete(lichtkrant.start())
