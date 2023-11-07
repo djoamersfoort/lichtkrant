@@ -54,7 +54,7 @@ class Game:
         self.state = "lobby"  # later moves to game
         self.speed = 2
         self.steps_at_current_speed = 0
-        asyncio.run_coroutine_threadsafe(self.drop_pieces(), asyncio.get_event_loop())
+        asyncio.create_task(self.drop_pieces())
 
     async def drop_pieces(self):
         while True:

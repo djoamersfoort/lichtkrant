@@ -113,7 +113,7 @@ class LichtKrant:
             print(f"state: {state.name}")
             return None
 
-        asyncio.run_coroutine_threadsafe(state.run(), asyncio.get_event_loop())
+        asyncio.create_task(state.run())
         return state
 
     async def state_loop(self) -> None:
