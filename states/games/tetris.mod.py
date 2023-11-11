@@ -1,11 +1,12 @@
-import threading
 from random import choice
-from time import sleep, time
+from time import time
 from typing import cast
 
 from states.base import BaseState
 from states.socket import BasePlayer, ClientState
 
+from asyncio import sleep
+import asyncio
 
 GREY = [150, 150, 150]
 DARK_GREY = [90, 90, 90]
@@ -53,11 +54,11 @@ class Game:
         self.state = "lobby"  # later moves to game
         self.speed = 2
         self.steps_at_current_speed = 0
-        threading.Thread(target=self.drop_pieces).start()
+        asyncio.create_task(self.drop_pieces())
 
-    def drop_pieces(self):
+    async def drop_pieces(self):
         while True:
-            sleep(1/self.speed)
+            await sleep(1/self.speed)
             if self.state == "game":
                 for board in self.boards:
                     if board.is_alive:
@@ -67,7 +68,7 @@ class Game:
                     self.steps_at_current_speed = 0
                     self.speed += 1
 
-    def update(self):
+    async def update(self):
         if self.state == "game":
             for board in self.boards:
                 if board.is_alive and board.in_game:
@@ -77,7 +78,7 @@ class Game:
             ]
             if not alive_boards:
                 self.state = "winner"
-                sleep(5)
+                await sleep(5)
                 for i in range(8):
                     player = self.boards[i].player
                     self.boards[i] = Board(i)
@@ -93,7 +94,7 @@ class Game:
             if connected_boards and connected_boards == ready_boards:
                 self.state = "game"
                 for board in ready_boards:
-                    board.player.set_state(ClientState.PLAYING)
+                    await board.player.set_state(ClientState.PLAYING)
                     board.in_game = True
 
     def draw(self, pixels):
@@ -371,33 +372,32 @@ class State(BaseState):
         self.player_class = Player
         self.game_meta = "static/game_meta/tetris.json"
 
-    def check(self, _state):
+    async def check(self, _state):
         return self.game
 
-    def run(self):
-        while not self.killed:
+    async def run(self):
+        while not self.killed and self.game:
+            if not self.on_pi:
+                time_start = time()
+            # create a black empty set of pixels
+            pixels = []
+            for _ in range(32):
+                pixels.append([])
+                for _ in range(96):
+                    pixels[-1].append(BLACK)
+            # main game loop
+            await self.game.update()
+            # draw all elements
             if self.game:
-                if not self.on_pi:
-                    time_start = time()
-                # create a black empty set of pixels
-                pixels = []
-                for _ in range(32):
-                    pixels.append([])
-                    for _ in range(96):
-                        pixels[-1].append(BLACK)
-                # main game loop
-                self.game.update()
-                # draw all elements
-                if self.game:
-                    self.game.draw(pixels)
-                # flatten, convert and write buffer to display
-                self.output_frame(bytes(self.flatten(pixels)))
-                if not self.on_pi:
-                    time_end = time()
-                    time_delta = time_start - time_end
-                    sleep(max(0.04-time_delta, 0))
+                self.game.draw(pixels)
+            # flatten, convert and write buffer to display
+            await self.output_frame(bytes(self.flatten(pixels)))
+            if not self.on_pi:
+                time_end = time()
+                time_delta = time_start - time_end
+                await sleep(max(0.04-time_delta, 0))
 
-    def add_player(self, player):
+    async def add_player(self, player):
         if not self.game:
             self.game = Game()
         board = next(

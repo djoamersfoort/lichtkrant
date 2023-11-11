@@ -1,9 +1,8 @@
+import asyncio
+import sys
 from datetime import datetime
 from math import floor
-import sys
-from time import sleep
 
-import requests
 from PIL import Image
 
 from states.base import BaseState
@@ -27,7 +26,7 @@ class State(BaseState):
                   "params": {"uris": ["file:///data/PizzaMeneer/afsluiting.mp3"]}}
 
     # module check function
-    def check(self, _state):
+    async def check(self, _state):
         now = datetime.now()
 
         if now.weekday() == 4:  # friday
@@ -37,29 +36,29 @@ class State(BaseState):
         return False
 
     # start music
-    def queue_song(self):
+    async def queue_song(self):
         # get tlid and play sluiting track
         try:
-            response = requests.post(self.queue_uri, json=self.queue_data, timeout=5)
+            response = await self.client.post(self.queue_uri, json=self.queue_data, timeout=5)
             tlid = response.json()["result"][0]["tlid"]
-            requests.post(self.queue_uri,
+            await self.client.post(self.queue_uri,
              json={"jsonrpc": "2.0", "id": 1, "method": "core.playback.play", "params": {"tlid": tlid}}, timeout=5)
-            requests.post(self.queue_uri,
+            await self.client.post(self.queue_uri,
              json={"jsonrpc": "2.0", "id": 1, "method": "core.mixer.set_volume", "params": {"volume": 100}}, timeout=5)
         except Exception as e:
             print(str(e), file=sys.stderr)
 
     # module runner
-    def run(self):
+    async def run(self):
         if self.on_pi:
-            self.queue_song()
+            await self.queue_song()
         while not self.killed:
             background = self.solar_systems[0].copy()
             for i, img in enumerate(self.solar_systems):
                 background.paste(img, (-self.scroll_x + i * 96, 0))
             background.paste(self.solar_systems[0], (-self.scroll_x + len(self.solar_systems) * 96, 0))
-            self.output_image(background)
-            sleep(.1)
+            await self.output_image(background)
+            await asyncio.sleep(.1)
             self.scroll_x += 1
             if self.scroll_x >= self.solar_system_fragment_length * 96:
                 self.scroll_x = 0

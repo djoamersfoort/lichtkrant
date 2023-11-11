@@ -1,4 +1,4 @@
-from time import sleep
+from asyncio import sleep
 
 from PIL import Image, ImageDraw, ImageFont
 
@@ -17,12 +17,12 @@ class State(BaseState):
         self.state = None
 
     # module check function
-    def check(self, space_state):
+    async def check(self, space_state):
         self.state = space_state
         return space_state['temperature'] is not None
 
     # module runner
-    def run(self):
+    async def run(self):
         # shutdown text
         while not self.killed:
             image = Image.new("RGB", (96, 32), "black")
@@ -33,5 +33,5 @@ class State(BaseState):
             font = ImageFont.truetype(self.font_path, size=19)
             draw.text((48, 16), f"{temp} °C", fill="blue", anchor="mm", font=font)
 
-            self.output_image(image)
-            sleep(0.5)
+            await self.output_image(image)
+            await sleep(0.5)

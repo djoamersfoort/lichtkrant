@@ -1,11 +1,12 @@
 from math import fabs
-from time import sleep
 from typing import cast
 
 from PIL import Image, ImageDraw, ImageFont
 
 from states.base import BaseState
 from states.socket import BasePlayer
+
+from asyncio import sleep
 
 
 class Connection(BasePlayer):
@@ -35,15 +36,15 @@ class Connection(BasePlayer):
         elif key == "w":
             self.player.jumping = False
 
-    def init(self, color, player):
+    async def init(self, color, player):
         self.player = player
-        self.set_color(color)
+        await self.set_color(color)
 
     def on_leave(self):
         self.player.conn = None
         game = cast(State, self.game)
         if not game.game.p1.conn and not game.game.p2.conn:
-            self.game.game = None
+            game.game = None
 
 
 class Game:
@@ -61,12 +62,12 @@ class Game:
         self.p1_img = Image.open("./static/game_assets/splash/Karakter1.gif").convert(mode="RGB")
         self.p2_img = Image.open("./static/game_assets/splash/Karakter2.gif").convert(mode="RGB")
 
-    def update(self):
+    async def update(self):
         # connection updating
         if not self.p1.conn or not self.p2.conn:
             return
         if self.p1.has_won or self.p2.has_won:
-            sleep(5)
+            await sleep(5)
             self.reset()
             return
 
@@ -199,48 +200,48 @@ class State(BaseState):
         self.player_class = Connection
         self.game_meta = "static/game_meta/splash.json"
 
-    def add_player(self, player):
+    async def add_player(self, player):
         if not self.game:
             self.game = Game()
         if not self.game.p1.conn:
             self.game.p1.conn = player
-            player.init("#FFD900", self.game.p1)
+            await player.init("#FFD900", self.game.p1)
         elif not self.game.p2.conn:
             self.game.p2.conn = player
-            player.init("#00AE00", self.game.p2)
+            await player.init("#00AE00", self.game.p2)
         else:
             return
 
     # module check function
-    def check(self, _state):
+    async def check(self, _state):
         return self.game
 
     # module runner
-    def run(self):
+    async def run(self):
         font8 = ImageFont.truetype(self.font_path, size=8)
         font12 = ImageFont.truetype(self.font_path, size=12)
         font14 = ImageFont.truetype(self.font_path, size=14)
 
-        while not self.killed:
-            if self.game:
-                self.game.update()
-                currentBackg = self.game.background.copy()
+        while not self.killed and self.game:
+            await self.game.update()
+            currentBackg = self.game.background.copy()
 
-                currentBackg.paste(self.game.p1_img, (int(self.game.p1.x), int(self.game.p1.y)))
-                currentBackg.paste(self.game.p2_img, (int(self.game.p2.x), int(self.game.p2.y)))
-                draw = ImageDraw.Draw(currentBackg)
-                tcolor = "red" if self.game.timer < 10 else "black"
-                draw.text((48, 26), str(self.game.timer), fill=tcolor, anchor="mm", font=font8)
-                draw.text((22, 26), str(self.game.p1.score), fill=(255, 217, 0), anchor="lm", font=font12)
-                draw.text((74, 26), str(self.game.p2.score), fill=(0, 174, 0), anchor="rm", font=font12)
-                if self.game.p1.has_won or self.game.p2.has_won:
-                    draw.text((48, 3), "ROUND OVER!", fill=(120, 0, 0), anchor="mt", font=font14)
-                elif not self.game.p1.conn or not self.game.p2.conn:
-                    draw.text((48, 3), "WAITING", fill=(120, 0, 0), anchor="mt", font=font14)
-                self.output_image(currentBackg)
+            currentBackg.paste(self.game.p1_img, (int(self.game.p1.x), int(self.game.p1.y)))
+            currentBackg.paste(self.game.p2_img, (int(self.game.p2.x), int(self.game.p2.y)))
+            draw = ImageDraw.Draw(currentBackg)
+            tcolor = "red" if self.game.timer < 10 else "black"
+            draw.text((48, 26), str(self.game.timer), fill=tcolor, anchor="mm", font=font8)
+            draw.text((22, 26), str(self.game.p1.score), fill=(255, 217, 0), anchor="lm", font=font12)
+            draw.text((74, 26), str(self.game.p2.score), fill=(0, 174, 0), anchor="rm", font=font12)
+            if self.game.p1.has_won or self.game.p2.has_won:
+                draw.text((48, 3), "ROUND OVER!", fill=(120, 0, 0), anchor="mt", font=font14)
+            elif not self.game.p1.conn or not self.game.p2.conn:
+                draw.text((48, 3), "WAITING", fill=(120, 0, 0), anchor="mt", font=font14)
+            await self.output_image(currentBackg)
+            await self.output_image(currentBackg)
 
-                self.calls += 1
-                if self.calls % 60 == 0 and self.game.p1.conn and self.game.p2.conn:
-                    self.game.timer -= 1
+            self.calls += 1
+            if self.calls % 60 == 0 and self.game.p1.conn and self.game.p2.conn:
+                self.game.timer -= 1
 
-                sleep(.017)
+            await sleep(.017)

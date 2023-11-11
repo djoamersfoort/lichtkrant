@@ -1,5 +1,5 @@
 from datetime import datetime
-from time import sleep
+from asyncio import sleep
 
 from PIL import Image, ImageDraw, ImageFont
 
@@ -13,10 +13,10 @@ class State(BaseState):
     delay = 30
 
     # module check function
-    def check(self, _state):
+    async def check(self, _state):
         return True
 
-    def run(self):
+    async def run(self):
         while not self.killed:
             image = Image.new("RGB", (96, 32), "black")
             time_str = datetime.now().strftime("%H:%M:%S")
@@ -25,5 +25,5 @@ class State(BaseState):
             font = ImageFont.truetype(self.font_path, size=19)
             draw.text((48, 16), time_str, fill="green", anchor="mm", font=font)
 
-            self.output_image(image)
-            sleep(0.5)
+            await self.output_image(image)
+            await sleep(0.5)

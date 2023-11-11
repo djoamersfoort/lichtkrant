@@ -1,20 +1,19 @@
+import sys
 from abc import abstractmethod
 from os import environ
 from shutil import which
-from sys import stdout
-from threading import Thread
 from typing import List
 
-import requests
+import aiofiles
+import httpx
 from PIL import Image
-from requests.auth import HTTPBasicAuth
 
 BEEP_URL = environ.get("BEEP_URL")
 BEEP_USER = environ.get("BEEP_USER")
 BEEP_PASSWORD = environ.get("BEEP_PASSWORD")
 
 
-class BaseState(Thread):
+class BaseState:
     name = "base"
     delay = 10
     index = 0
@@ -26,34 +25,39 @@ class BaseState(Thread):
         self.player_class = None
         self.game_meta = None
         self.font_path = "./static/fonts/NotoMono-Regular.ttf"
+        self.client = httpx.AsyncClient()
+        self.stdout = None
 
     def kill(self) -> None:
         self.killed = True
 
-    def beep(self, duration_seconds: int) -> bool:
+    async def beep(self, duration_seconds: int) -> bool:
         if not BEEP_URL:
             return False
 
         try:
-            requests.get(f"http://{BEEP_URL}/on?length={int(duration_seconds * 1000)}",
-                         auth=HTTPBasicAuth(BEEP_USER, BEEP_PASSWORD), timeout=5)
+            await self.client.get(f"http://{BEEP_URL}/on?length={int(duration_seconds * 1000)}",
+                         auth=(BEEP_USER, BEEP_PASSWORD), timeout=5)
         except Exception:
             return False
 
         return True
 
     @abstractmethod
-    def check(self, space_state: dict) -> bool:
+    async def check(self, space_state: dict) -> bool:
         return True
 
-    def add_player(self, _player: "BasePlayer"):
+    async def add_player(self, _player: "BasePlayer"):
         pass
 
-    def output_image(self, pil_image: Image) -> None:
-        stdout.buffer.write(pil_image.tobytes())
+    async def output_image(self, pil_image: Image) -> None:
+        await self.output_frame(pil_image.tobytes())
 
-    def output_frame(self, frame: bytes) -> None:
-        stdout.buffer.write(frame)
+    async def output_frame(self, frame: bytes) -> None:
+        if not self.stdout:
+            self.stdout = await aiofiles.open(sys.stdout.fileno(), 'wb', 0)
+
+        await self.stdout.write(frame)
 
     @staticmethod
     def text(text: str) -> List[List[int]]:
@@ -114,3 +118,6 @@ class BaseState(Thread):
         if isinstance(_list[0], list):
             return self.flatten(_list[0]) + self.flatten(_list[1:])
         return _list[:1] + self.flatten(_list[1:])
+
+    async def run(self) -> None:
+        pass

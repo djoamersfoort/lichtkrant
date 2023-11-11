@@ -1,7 +1,7 @@
 from datetime import datetime
-from time import sleep
+from asyncio import sleep
 
-import requests
+import httpx
 from PIL import Image, ImageDraw, ImageFont
 
 from states.base import BaseState
@@ -16,11 +16,10 @@ class State(BaseState):
     elapsed = 0
     check_elapsed = 0
 
-    @staticmethod
-    def get_response():
+    async def get_response(self):
         try:
-            response = requests.get("https://api.nm-games.eu/djo", timeout=5)
-        except requests.RequestException:
+            response = await self.client.get("https://api.nm-games.eu/djo", timeout=5)
+        except httpx.RequestError:
             return {}
         if not response.ok:
             return {}
@@ -28,10 +27,10 @@ class State(BaseState):
         return response["djo"]  # dict of keer gegamed per player
 
     # module check function
-    def check(self, _state):
+    async def check(self, _state):
         self.check_elapsed += 1
         if self.check_elapsed % 15 == 0:
-            self.gamers = self.get_response()
+            self.gamers = await self.get_response()
 
         if len(self.gamers) == 0:
             return False
@@ -45,7 +44,7 @@ class State(BaseState):
 
         return False
 
-    def run(self):
+    async def run(self):
         scroll_y = 0
         font_path = "static/fonts/nm-games-font.ttf"
         font8 = ImageFont.truetype(font_path, size=8)
@@ -65,7 +64,7 @@ class State(BaseState):
                 draw.text((2, (i * 8 + 32) - scroll_y), user, fill="white", anchor="lm", font=font8)
                 draw.text((94, (i * 8 + 32) - scroll_y), "x" + str(count), fill=(0, 110, 210), anchor="rm", font=font8)
 
-            self.output_image(image)
-            sleep(0.5)
+            await self.output_image(image)
+            await sleep(0.5)
             self.elapsed += 0.5
             scroll_y += len(self.gamers)

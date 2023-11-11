@@ -1,7 +1,8 @@
 import os
-from time import sleep
 from PIL import Image, ImageDraw, ImageFont
 from states.base import BaseState
+
+import asyncio
 
 
 class State(BaseState):
@@ -12,11 +13,11 @@ class State(BaseState):
     delay = 120
 
     # module check function
-    def check(self, space_state):
+    async def check(self, space_state):
         return space_state['djo'] == "closed"
 
     # module runner
-    def run(self):
+    async def run(self):
         # shutdown after 1 minute
         os.system("/sbin/halt")
 
@@ -34,5 +35,5 @@ class State(BaseState):
         image.paste(hal_image, (1, 1))
 
         while not self.killed:
-            self.output_image(image)
-            sleep(1)
+            await self.output_image(image)
+            await asyncio.sleep(1)

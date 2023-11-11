@@ -1,9 +1,9 @@
-from time import sleep
-
-import requests
 from PIL import Image, ImageFont, ImageDraw
 
 from states.base import BaseState
+
+import asyncio
+import httpx
 
 
 class State(BaseState):
@@ -16,21 +16,18 @@ class State(BaseState):
     elapsed = 0
 
     # get dictee data
-    @staticmethod
-    def get_results():
+    async def get_results(self):
         try:
-            response = requests.get("https://dictee.djoamersfoort.nl/lichtkrant-api", timeout=5)
-        except requests.RequestException:
-            return []
-        if not response.ok:
+            response = await self.client.get("https://dictee.djoamersfoort.nl/lichtkrant-api/", timeout=5)
+        except httpx.RequestError:
             return []
         return response.json()
 
-    def check(self, _state):
-        self.results = self.get_results()
+    async def check(self, _state):
+        self.results = await self.get_results()
         return len(self.results) > 0
 
-    def run(self):
+    async def run(self):
         scroll_x = 0
         fonts = {
             "font9": ImageFont.truetype(self.font_path, size=9),
@@ -52,7 +49,7 @@ class State(BaseState):
                 grade_color = "lime" if grade >= 5.5 else "red"
                 draw.text((93 + i * 96 - scroll_x, 21), str(grade), fill=grade_color, anchor="rm", font=fonts["font16"])
 
-            self.output_image(image)
+            await self.output_image(image)
             self.elapsed += 0.2
             if self.elapsed % self.show_time >= (self.show_time - 1) and len(self.results) > 1:
                 # round() to prevent addition glitches
@@ -60,4 +57,4 @@ class State(BaseState):
                 if scroll_x >= len(self.results) * 96:
                     scroll_x = 0
 
-            sleep(0.2)
+            await asyncio.sleep(0.2)
