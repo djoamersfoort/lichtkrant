@@ -1,8 +1,10 @@
+import sys
 from abc import abstractmethod
 from os import environ
 from shutil import which
 from typing import List
 
+import aiofiles
 import httpx
 from PIL import Image
 
@@ -49,9 +51,12 @@ class BaseState:
         pass
 
     async def output_image(self, pil_image: Image) -> None:
-        await self.stdout.write(pil_image.tobytes())
+        await self.output_frame(pil_image.tobytes())
 
     async def output_frame(self, frame: bytes) -> None:
+        if not self.stdout:
+            self.stdout = await aiofiles.open(sys.stdout.fileno(), 'wb', 0)
+
         await self.stdout.write(frame)
 
     @staticmethod
