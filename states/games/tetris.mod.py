@@ -367,8 +367,8 @@ class State(BaseState):
     game = None
     source = ""
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self, stdout):
+        super().__init__(stdout)
         self.player_class = Player
         self.game_meta = "static/game_meta/tetris.json"
 

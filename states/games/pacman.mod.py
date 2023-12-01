@@ -179,8 +179,8 @@ class State(BaseState):
     source = ""
     direction = [1, 0]
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self, stdout):
+        super().__init__(stdout)
         self.player_class = Player
         self.game_meta = "static/game_meta/pacman.json"
 

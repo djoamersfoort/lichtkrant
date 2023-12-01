@@ -12,8 +12,8 @@ class State(BaseState):
     index = 0
     delay = 12
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self, stdout):
+        super().__init__(stdout)
         self.state = None
 
     # module check function

@@ -9,6 +9,8 @@ from glob import glob
 from json import loads
 from os import path
 from typing import Optional, Any, List
+import aiofiles
+import sys
 
 import mqtt
 from states.base import BaseState
@@ -24,6 +26,7 @@ class LichtKrant:
         self.states = {}
         self.games = self.get_games()
         self.socket = Socket(self, int(cmd_args.port))
+        self.stdout = None
 
     def import_module(self, loc: str) -> (Optional[Any], str):
         name = path.basename(loc).replace('.mod.py', '', -1)
@@ -63,7 +66,7 @@ class LichtKrant:
             # Re-create any missing states (killed threads)
             if name not in self.states:
                 try:
-                    state = module.State()
+                    state = module.State(self.stdout)
                 except Exception:
                     continue
                 state.name = name
@@ -155,6 +158,8 @@ class LichtKrant:
 
     async def start(self) -> None:
         async with asyncio.TaskGroup() as tg:
+            self.stdout = await aiofiles.open(sys.stdout.fileno(), 'wb', 0)
+
             tg.create_task(self.state_loop())
             tg.create_task(self.socket.start())
 

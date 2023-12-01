@@ -18,7 +18,7 @@ class BaseState:
     delay = 10
     index = 0
 
-    def __init__(self):
+    def __init__(self, stdout):
         super().__init__()
         self.killed = False
         self.on_pi = which("rpi-update")
@@ -26,7 +26,7 @@ class BaseState:
         self.game_meta = None
         self.font_path = "./static/fonts/NotoMono-Regular.ttf"
         self.client = httpx.AsyncClient()
-        self.stdout = None
+        self.stdout = stdout
 
     def kill(self) -> None:
         self.killed = True
@@ -54,9 +54,6 @@ class BaseState:
         await self.output_frame(pil_image.tobytes())
 
     async def output_frame(self, frame: bytes) -> None:
-        if not self.stdout:
-            self.stdout = await aiofiles.open(sys.stdout.fileno(), 'wb', 0)
-
         await self.stdout.write(frame)
 
     @staticmethod

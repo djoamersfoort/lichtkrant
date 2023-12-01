@@ -18,8 +18,8 @@ class State(BaseState):
     color = bytes([255, 255, 255])
     frame_delay = 1 / 30
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self, stdout):
+        super().__init__(stdout)
         self.state = None
 
     # check function

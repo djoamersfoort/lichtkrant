@@ -195,8 +195,8 @@ class State(BaseState):
     calls = 0
     game = None
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self, stdout):
+        super().__init__(stdout)
         self.player_class = Connection
         self.game_meta = "static/game_meta/splash.json"
 

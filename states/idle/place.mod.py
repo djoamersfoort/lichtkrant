@@ -18,8 +18,8 @@ class State(BaseState):
     image = Image.new("RGB", (W, H), "black")
     time = 0
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self, stdout):
+        super().__init__(stdout)
         self.sio.on("board", self.board)
         self.sio.on("color", self.color)
         self.sio.connect("https://place.djoamersfoort.nl")
