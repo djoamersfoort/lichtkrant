@@ -4,13 +4,14 @@ import asyncio
 import importlib.util
 import random
 import signal
+import sys
 import time
 from glob import glob
 from json import loads
 from os import path
 from typing import Optional, Any, List
+
 import aiofiles
-import sys
 
 import mqtt
 from states.base import BaseState
