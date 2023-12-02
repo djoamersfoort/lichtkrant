@@ -24,8 +24,8 @@ class LichtKrant:
         self.args = cmd_args
         mqtt.connect(not cmd_args.offline)
         self.modules = None
+        self.games = None
         self.states = {}
-        self.games = self.get_games()
         self.socket = Socket(self, int(cmd_args.port))
         self.stdout = None
 
@@ -160,7 +160,7 @@ class LichtKrant:
     async def start(self) -> None:
         async with asyncio.TaskGroup() as tg:
             self.stdout = await aiofiles.open(sys.stdout.fileno(), 'wb', 0)
-
+            self.games = self.get_games()
             tg.create_task(self.state_loop())
             tg.create_task(self.socket.start())
 
