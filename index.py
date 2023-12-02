@@ -24,6 +24,7 @@ class LichtKrant:
         self.args = cmd_args
         mqtt.connect(not cmd_args.offline)
         self.modules = None
+	self.games = None
         self.states = {}
         self.socket = Socket(self, int(cmd_args.port))
         self.stdout = None
