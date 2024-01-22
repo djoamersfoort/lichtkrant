@@ -1,6 +1,6 @@
 argparse==1.4.0
 paho-mqtt==1.5.1
-pillow==10.0.1
+pillow==10.2.0
 requests
 httpx
 python-socketio
