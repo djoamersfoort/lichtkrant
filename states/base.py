@@ -1,6 +1,6 @@
 from abc import abstractmethod
 from os import environ
-from shutil import which
+from socket import gethostname
 from typing import List
 
 import httpx
@@ -19,7 +19,7 @@ class BaseState:
     def __init__(self, stdout):
         super().__init__()
         self.killed = False
-        self.on_pi = which("rpi-update")
+        self.on_pi = gethostname() == "lichtkrant"
         self.player_class = None
         self.game_meta = None
         self.font_path = "./static/fonts/NotoMono-Regular.ttf"
