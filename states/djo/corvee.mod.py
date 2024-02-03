@@ -1,6 +1,7 @@
 import asyncio
 from math import floor
 from random import randint
+from os import environ
 
 import httpx
 from PIL import Image, ImageDraw, ImageFont, ImageOps
@@ -16,11 +17,20 @@ class State(BaseState):
 
     # get corvee dashboard data
     async def get_names(self):
-        try:
-            response = await self.client.get("https://corvee.djoamersfoort.nl/api/v1/selected", timeout=5)
-        except httpx.RequestError:
-            return {}
-        return response.json()
+        if self.on_pi:
+            try:
+                response = await self.client.get(
+                    "https://corvee.djoamersfoort.nl/api/v1/selected",
+                    headers={"Authorization": f"Bearer {environ.get('API_TOKEN')}"},
+                    timeout=5
+                )
+            except httpx.RequestError:
+                return {}
+            return response.json()
+        return {
+            "selected": ["Jan", "Henk", "Piet"],
+            "present": ["Jan", "Henk", "Piet", "Bert", "Gert"]
+        }
 
     # module check function
     async def check(self, _state):
@@ -34,7 +44,8 @@ class State(BaseState):
         names = await self.get_names()
         colors = [(randint(128, 255), randint(128, 255), randint(128, 255)) for _ in names["present"]]
         scroll_y = 0
-        scroll_speed = 8
+        scroll_max_speed = 6
+        scroll_speed = scroll_max_speed
         chosen = []
         fonts = {
             "noto8": ImageFont.truetype(self.font_path, size=8),
@@ -69,10 +80,10 @@ class State(BaseState):
                 if scroll_y > len(names["present"]) * 12:
                     scroll_y = 1
 
-                draw.rectangle([(0, 10), (95, 22)], fill=None, outline="cyan", width=1)
+                draw.rectangle([(0, 10), (95, 22)], fill=None, outline=(0, 128, 255), width=1)
 
-                if scroll_speed > 1 and elapsed % 1 < .05:
-                    scroll_speed -= 1
+                if scroll_speed > 1 and elapsed % 1 < .017:
+                    scroll_speed -= 0.5 if scroll_speed <= 3 else 1
                 elif scroll_speed == 1 and (scroll_y + 10) % 12 == 0:
                     center_index = floor((scroll_y + 10) / 12)
                     if center_index == len(names["present"]):
@@ -80,14 +91,22 @@ class State(BaseState):
 
                     centered = names["present"][center_index]
                     if centered in names["selected"]:
-                        image = ImageOps.solarize(image, threshold=20)
+                        draw.rectangle([(0, 10), (95, 22)], fill=None, outline=(255, 64, 0), width=1)
+                        await self.output_image(image)
+
                         await asyncio.sleep(5)
-                        image = ImageOps.solarize(image, threshold=-20)
+                        image = ImageOps.solarize(image, threshold=30)
+                        await self.output_image(image)
+
+                        await asyncio.sleep(0.25)
+                        image = ImageOps.solarize(image, threshold=-30)
+                        await self.output_image(image)
+
                         names["selected"].remove(centered)
                         chosen.append(centered)
                         elapsed = 15
                         scroll_y = 0
-                        scroll_speed = 8
+                        scroll_speed = scroll_max_speed
             else:
                 for i, name in enumerate(chosen):
                     draw.text((48, 5 + 11 * i), name, fill=colors[i], anchor="mm", font=fonts["noto11"])
@@ -97,5 +116,5 @@ class State(BaseState):
                     draw.rectangle([(89, y - 8), (94, y - 4)], fill="blue")
 
             await self.output_image(image)
-            await asyncio.sleep(.05)
-            elapsed += .05
+            await asyncio.sleep(.017)
+            elapsed += .017
