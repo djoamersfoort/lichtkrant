@@ -21,7 +21,7 @@ class State(BaseState):
             try:
                 response = await self.client.get(
                     "https://corvee.djoamersfoort.nl/api/v1/selected",
-                    headers={"Authorization": f"Bearer {environ.get("API_TOKEN")}"},
+                    headers={"Authorization": f"Bearer {environ.get('API_TOKEN')}"},
                     timeout=5
                 )
             except httpx.RequestError:
