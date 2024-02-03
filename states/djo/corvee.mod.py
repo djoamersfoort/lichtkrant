@@ -27,11 +27,10 @@ class State(BaseState):
             except httpx.RequestError:
                 return {}
             return response.json()
-        else:
-            return {
-                "selected": ["Jan", "Henk", "Piet"],
-                "present": ["Jan", "Henk", "Piet", "Bert", "Gert"]
-            }
+        return {
+            "selected": ["Jan", "Henk", "Piet"],
+            "present": ["Jan", "Henk", "Piet", "Bert", "Gert"]
+        }
 
     # module check function
     async def check(self, _state):
