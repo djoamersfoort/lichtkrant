@@ -1,3 +1,4 @@
+import sys
 from abc import abstractmethod
 from os import environ
 from socket import gethostname
@@ -34,9 +35,10 @@ class BaseState:
             return False
 
         try:
-            await self.client.get(f"http://{BEEP_URL}/on?length={int(duration_seconds * 1000)}",
+            await self.client.get(f"http://{BEEP_URL}/on?duration={int(duration_seconds * 1000)}",
                          auth=(BEEP_USER, BEEP_PASSWORD), timeout=5)
-        except Exception:
+        except Exception as e:
+            print(str(e), file=sys.stderr)
             return False
 
         return True
