@@ -24,7 +24,7 @@ class BaseState:
         self.player_class = None
         self.game_meta = None
         self.font_path = "./static/fonts/NotoMono-Regular.ttf"
-        self.client = httpx.AsyncClient()
+        self.client = httpx.AsyncClient(timeout=5)
         self.stdout = stdout
 
     def kill(self) -> None:
