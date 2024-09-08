@@ -1,8 +1,10 @@
-import json
 import math
-from datetime import datetime, timedelta
+import sys
 from asyncio import sleep
+from datetime import datetime, timedelta
+from json import JSONDecodeError
 
+import httpx
 from PIL import Image, ImageDraw, ImageFont
 
 from states.base import BaseState
@@ -19,15 +21,19 @@ class State(BaseState):
           "lat=52.09&lon=5.12&btc=202105271011&ak=3c4a3037-85e6-4d1e-ad6c-f3f6e4b75f2f"
 
     # check function
-    async def check(self, _state):
+    async def check(self, _state) -> bool:
         return True
 
-    async def get_data(self):
-        req = await self.client.get(self.url, timeout=5)
-        data = json.loads(req.text)
+    async def get_data(self) -> dict:
+        data = {}
+        try:
+            req = await self.client.get(self.url, timeout=5)
+            data = req.json()
+        except (httpx.HTTPError, JSONDecodeError) as e:
+            print(e, file=sys.stderr)
         return data['forecasts']
 
-    def get_image(self, data):
+    def get_image(self, data) -> Image:
         is_rainy = False
 
         font = ImageFont.truetype(self.font_path, size=10)
@@ -73,7 +79,7 @@ class State(BaseState):
         return image
 
     # module runner
-    async def run(self):
+    async def run(self) -> None:
         data = await self.get_data()
         image = self.get_image(data)
 

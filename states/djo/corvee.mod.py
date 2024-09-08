@@ -1,7 +1,7 @@
 import asyncio
 from math import floor
-from random import randint
 from os import environ
+from random import randint
 
 import httpx
 from PIL import Image, ImageDraw, ImageFont, ImageOps
@@ -16,21 +16,23 @@ class State(BaseState):
     delay = 3600
 
     # get corvee dashboard data
-    async def get_names(self):
-        if self.on_pi:
-            try:
-                response = await self.client.get(
-                    "https://corvee.djoamersfoort.nl/api/v1/selected",
-                    headers={"Authorization": f"Bearer {environ.get('API_TOKEN')}"},
-                    timeout=5
-                )
-            except httpx.RequestError:
-                return {}
-            return response.json()
-        return {
-            "selected": ["Jan", "Henk", "Piet"],
-            "present": ["Jan", "Henk", "Piet", "Bert", "Gert"]
-        }
+    async def get_names(self) -> dict[str, list[str]]:
+        if not self.on_pi:
+            # Return fake data
+            return {
+                "selected": ["Jan", "Henk", "Piet"],
+                "present": ["Jan", "Henk", "Piet", "Bert", "Gert"]
+            }
+
+        try:
+            response = await self.client.get(
+                "https://corvee.djoamersfoort.nl/api/v1/selected",
+                headers={"Authorization": f"Bearer {environ.get('API_TOKEN')}"},
+                timeout=5
+            )
+        except httpx.RequestError:
+            return {}
+        return response.json()
 
     # module check function
     async def check(self, _state):
@@ -42,6 +44,7 @@ class State(BaseState):
     async def run(self):
         elapsed = 0
         names = await self.get_names()
+        selected_names = names["selected"]
         colors = [(randint(128, 255), randint(128, 255), randint(128, 255)) for _ in names["present"]]
         scroll_y = 0
         scroll_max_speed = 6
@@ -114,6 +117,13 @@ class State(BaseState):
                     y = (elapsed + i * 8) % 40
                     draw.rectangle([(1, y - 8), (6, y - 4)], fill="blue")
                     draw.rectangle([(89, y - 8), (94, y - 4)], fill="blue")
+
+            if elapsed > 30:
+                elapsed = 15
+                new_names = await self.get_names()
+                if new_names and new_names["selected"] != selected_names:
+                    # Names have been updated
+                    chosen = new_names["selected"]
 
             await self.output_image(image)
             await asyncio.sleep(.017)
