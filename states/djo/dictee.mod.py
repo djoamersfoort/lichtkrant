@@ -18,7 +18,7 @@ class State(BaseState):
     # get dictee data
     async def get_results(self):
         try:
-            response = await self.client.get("https://dictee.djoamersfoort.nl/lichtkrant-api/", timeout=5)
+            response = await self.client.get("https://dictee.djoleden.nl/lichtkrant-api/", timeout=5)
         except httpx.RequestError:
             return []
         return response.json()
