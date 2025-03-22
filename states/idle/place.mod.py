@@ -22,7 +22,7 @@ class State(BaseState):
         super().__init__(stdout)
         self.sio.on("board", self.board)
         self.sio.on("color", self.color)
-        self.sio.connect("https://place.djoamersfoort.nl")
+        self.sio.connect("https://place.djoleden.nl")
 
     # module check function
     async def check(self, _state):
