@@ -1,4 +1,3 @@
-from random import randint
 from asyncio import sleep
 
 from states.base import BaseState
