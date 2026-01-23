@@ -34,9 +34,12 @@ class BaseState:
         if not BEEP_URL:
             return False
 
+        duration = min(duration_seconds, 5000)  # max 5 seconds
+
         try:
-            await self.client.get(f"http://{BEEP_URL}/on?duration={int(duration_seconds * 1000)}",
-                         auth=(BEEP_USER, BEEP_PASSWORD), timeout=5)
+            await self.client.post(f"http://{BEEP_URL}/on",
+                     auth=(BEEP_USER, BEEP_PASSWORD),
+                     data={"t": int(duration * 1000)}, timeout=5)
         except Exception as e:
             print(str(e), file=sys.stderr)
             return False
