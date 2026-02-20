@@ -49,7 +49,8 @@ class State(BaseState):
                     fill=(200, 200, 200), anchor="lt", font=fonts["font9"])
 
                 grade_color = "lime" if res["passed"] else "red"
-                draw.text((93 + i * 96 - scroll_x, 20), str(res["grade"]), fill=grade_color, anchor="rm", font=fonts["font16"])
+                draw.text((93 + i * 96 - scroll_x, 20), str(res["grade"]),
+                    fill=grade_color, anchor="rm", font=fonts["font16"])
 
             await self.output_image(image)
             self.elapsed += 0.1
