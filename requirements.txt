@@ -6,6 +6,6 @@ httpx
 python-socketio
 eventlet
 websocket-client
-pylint==2.15.5
+pylint==4.0.9
 hypercorn
 aiofiles
