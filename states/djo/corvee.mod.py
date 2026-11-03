@@ -126,5 +126,6 @@ class State(BaseState):
                     chosen = new_names["selected"]
 
             await self.output_image(image)
+            await self.beep(2)
             await asyncio.sleep(.017)
             elapsed += .017
